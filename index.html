@@ -787,7 +787,7 @@ function renderAdmOrders(){
 }
 function markPaid(id){
   var o=orders.find(function(x){
-    return x.id===id;
+    return String(x.id)===String(id);
   });
 
   if(o){
@@ -797,8 +797,7 @@ function markPaid(id){
       method:"POST",
       body:JSON.stringify({
         action:"paid",
-        name:o.name,
-        detail:o.detail
+        id:o.id
       })
     });
   }
@@ -892,6 +891,12 @@ function toast(msg,type){
 }
 
 renderMenu();loadOrders();startAuto();
+setInterval(function(){
+  if(isLoggedIn){
+    loadOrders();
+  }
+}, 5000);
+
 </script>
 
 </body>
