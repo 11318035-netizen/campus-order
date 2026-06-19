@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>校園團購訂餐</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -394,48 +395,6 @@ input:checked+.tsl:before{transform:translateX(15px)}
 
     <div class="div"></div>
 
-    <div class="adm-sec">
-      <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px"><i class="ti ti-photo-up" style="font-size:14px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>首頁圖片管理</div>
-      <div class="img-upload-section">
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">輪播圖片（點擊上傳，支援 JPG / PNG）</div>
-        <div class="img-grid">
-          <div class="img-slot" onclick="trigUpload(0)" id="islot-0"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">輪播 1</span></div>
-          <div class="img-slot" onclick="trigUpload(1)" id="islot-1"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">輪播 2</span></div>
-          <div class="img-slot" onclick="trigUpload(2)" id="islot-2"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">輪播 3</span></div>
-          <div class="img-slot" onclick="trigUpload(3)" id="islot-3"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">輪播 4</span></div>
-        </div>
-        <input type="file" id="img-input-0" class="img-input" accept="image/*" onchange="handleImg(0,this)">
-        <input type="file" id="img-input-1" class="img-input" accept="image/*" onchange="handleImg(1,this)">
-        <input type="file" id="img-input-2" class="img-input" accept="image/*" onchange="handleImg(2,this)">
-        <input type="file" id="img-input-3" class="img-input" accept="image/*" onchange="handleImg(3,this)">
-
-        <div style="font-size:11px;color:var(--color-text-secondary);margin:10px 0 8px">功能介紹圖（對應首頁 4 個功能卡片）</div>
-        <div class="img-grid">
-          <div class="img-slot" onclick="trigUpload(4)" id="islot-4"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">點餐圖</span></div>
-          <div class="img-slot" onclick="trigUpload(5)" id="islot-5"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">統計圖</span></div>
-          <div class="img-slot" onclick="trigUpload(6)" id="islot-6"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">QR Code 圖</span></div>
-          <div class="img-slot" onclick="trigUpload(7)" id="islot-7"><i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">管理圖</span></div>
-        </div>
-        <input type="file" id="img-input-4" class="img-input" accept="image/*" onchange="handleImg(4,this)">
-        <input type="file" id="img-input-5" class="img-input" accept="image/*" onchange="handleImg(5,this)">
-        <input type="file" id="img-input-6" class="img-input" accept="image/*" onchange="handleImg(6,this)">
-        <input type="file" id="img-input-7" class="img-input" accept="image/*" onchange="handleImg(7,this)">
-
-        <div style="font-size:11px;color:var(--color-text-secondary);margin:10px 0 6px">輪播文字設定</div>
-        <div class="slide-info" id="slide-info-box">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-            <div class="ff"><label>輪播 1 標題</label><input id="st-0" type="text" value="校園團購訂餐整合平台" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 1 副標</label><input id="ss-0" type="text" value="讓團購更簡單，統計更輕鬆" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 2 標題</label><input id="st-1" type="text" value="一鍵線上點餐" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 2 副標</label><input id="ss-1" type="text" value="操作簡單・快速下單・省時省力" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 3 標題</label><input id="st-2" type="text" value="自動統計訂單與金額" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 3 副標</label><input id="ss-2" type="text" value="即時更新，清楚掌握團購狀況" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 4 標題</label><input id="st-3" type="text" value="掃碼即可加入團購" oninput="updateSlideText()"></div>
-            <div class="ff"><label>輪播 4 副標</label><input id="ss-3" type="text" value="一鍵分享，快速揪團更方便" oninput="updateSlideText()"></div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="div"></div>
 
@@ -617,50 +576,6 @@ function changeCreds(){
   msg.style.color='var(--color-text-success)';msg.textContent='帳密更新成功！';setTimeout(function(){msg.textContent=''},3000);toast('帳密已更新');
 }
 
-function trigUpload(idx){document.getElementById('img-input-'+idx).click();}
-function handleImg(idx,input){
-  var file=input.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var dataUrl=e.target.result;
-    uploadedImgs[idx]=dataUrl;
-    var slot=document.getElementById('islot-'+idx);
-    slot.innerHTML='<img src="'+dataUrl+'" alt="上傳圖片"><button class="del-img" onclick="delImg(event,'+idx+')" aria-label="刪除"><i class="ti ti-x" style="font-size:9px"></i></button>';
-    if(idx<4){
-      var slide=document.getElementById('slide-'+idx);
-      var ph=slide.querySelector('.slide-placeholder');
-      if(ph){ph.style.display='none';}
-      var existImg=slide.querySelector('img');
-      if(existImg)existImg.remove();
-      var img=document.createElement('img');img.src=dataUrl;img.alt='';
-      slide.insertBefore(img,slide.firstChild);
-    } else {
-      var fi=document.getElementById('fi-'+(idx-4));
-      fi.innerHTML='<img src="'+dataUrl+'" alt="功能圖">';
-    }
-    toast('圖片上傳成功！');
-  };
-  reader.readAsDataURL(file);
-  input.value='';
-}
-function delImg(e,idx){
-  e.stopPropagation();
-  delete uploadedImgs[idx];
-  var slot=document.getElementById('islot-'+idx);
-  var labels=['輪播 1','輪播 2','輪播 3','輪播 4','點餐圖','統計圖','QR Code 圖','管理圖'];
-  slot.innerHTML='<i class="ti ti-cloud-upload" aria-hidden="true"></i><span class="slot-label">'+labels[idx]+'</span>';
-  slot.onclick=function(){trigUpload(idx);};
-  if(idx<4){
-    var slide=document.getElementById('slide-'+idx);
-    var existImg=slide.querySelector('img');if(existImg)existImg.remove();
-    var ph=slide.querySelector('.slide-placeholder');if(ph)ph.style.display='';
-  } else {
-    var fi=document.getElementById('fi-'+(idx-4));
-    var icons=['ti-shopping-cart','ti-chart-bar','ti-qrcode','ti-settings'];
-    fi.innerHTML='<i class="ti '+icons[idx-4]+'" aria-hidden="true"></i>';
-  }
-  toast('已刪除圖片');
-}
 function updateSlideText(){
   for(var i=0;i<4;i++){
     var t=document.getElementById('st-'+i),s=document.getElementById('ss-'+i);
@@ -715,16 +630,28 @@ function startCdown(){
 }
 
 function genQR(){
-  if(qrDone)return;
-  var url=window.location.href.split('?')[0]+'?mode=order';
-  document.getElementById('qr-url').textContent=url;
-  var canvas=document.getElementById('qr-canvas'),ctx=canvas.getContext('2d');
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,130,130);
-  var sz=130,mods=21,cell=Math.floor(sz/mods);
-  var pat=[[1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,0,0,0,0,1],[1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,0,0,1,0,0,1,0,1,1,1,0,1],[1,0,0,0,0,0,1,0,0,1,1,0,1,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0],[1,1,0,1,1,0,1,1,0,0,1,0,0,1,1,0,1,0,1,1,0],[0,1,1,0,0,1,0,0,1,1,1,0,1,0,0,1,0,1,1,0,1],[1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,1,0,1],[1,0,0,1,0,1,1,0,1,1,0,1,1,0,1,0,0,1,0,1,0],[0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0],[1,1,1,1,1,1,1,0,0,1,1,0,1,0,1,0,0,1,0,1,1],[1,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,1,0,0],[1,0,1,1,1,0,1,1,0,1,1,0,1,0,1,0,0,1,0,1,1],[1,0,1,1,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0,0],[1,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,0,1,0,1,1],[1,1,1,1,1,1,1,0,1,1,0,1,0,0,0,1,1,0,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,0,1,0,1,1]];
-  ctx.fillStyle='#000';
-  for(var r=0;r<mods;r++){for(var c=0;c<mods;c++){if(pat[r]&&pat[r][c])ctx.fillRect(c*cell+2,r*cell+2,cell-1,cell-1);}}
-  qrDone=true;
+  console.log("genQR 執行");
+  console.log(QRCode);
+
+  var url = "https://11318035-netizen.github.io/campus-order/?mode=order";
+  document.getElementById('qr-url').textContent = url;
+
+  var canvas = document.getElementById('qr-canvas');
+
+  if(typeof QRCode === "undefined"){
+    toast("QR Code 套件載入失敗","w");
+    return;
+  }
+
+  QRCode.toCanvas(canvas, url, {
+    width: 130,
+    margin: 2
+  }, function(error){
+    if(error){
+      console.error(error);
+      toast("QR Code 產生失敗","w");
+    }
+  });
 }
 function dlQR(){var c=document.getElementById('qr-canvas'),a=document.createElement('a');a.download='order-qrcode.png';a.href=c.toDataURL();a.click();toast('QR Code 已下載');}
 
