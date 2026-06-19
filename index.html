@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>校園團購訂餐</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -417,7 +417,7 @@ input:checked+.tsl:before{transform:translateX(15px)}
     <div class="adm-sec">
       <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px"><i class="ti ti-qrcode" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>QR Code 點餐連結</div>
       <div class="qbox">
-        <canvas id="qr-canvas" width="130" height="130" style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md)"></canvas>
+        <div id="qr-canvas" style="width:130px;height:130px;margin:auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:4px;background:#fff"></div>
         <div style="font-size:11px;color:var(--color-text-secondary);margin-top:6px;word-break:break-all" id="qr-url">產生中...</div>
         <br><button class="dlb" onclick="dlQR()"><i class="ti ti-download" style="font-size:12px"></i> 下載 QR Code</button>
       </div>
@@ -630,30 +630,32 @@ function startCdown(){
 }
 
 function genQR(){
-  console.log("genQR 執行");
-  console.log(QRCode);
-
   var url = "https://11318035-netizen.github.io/campus-order/?mode=order";
+
   document.getElementById('qr-url').textContent = url;
+  document.getElementById('qr-canvas').innerHTML = '';
 
-  var canvas = document.getElementById('qr-canvas');
+  new QRCode(document.getElementById('qr-canvas'), {
+    text: url,
+    width: 120,
+    height: 120
+  });
+}
+function dlQR(){
+  var img = document.querySelector('#qr-canvas img');
 
-  if(typeof QRCode === "undefined"){
-    toast("QR Code 套件載入失敗","w");
+  if(!img){
+    toast('請先產生 QR Code','w');
     return;
   }
 
-  QRCode.toCanvas(canvas, url, {
-    width: 130,
-    margin: 2
-  }, function(error){
-    if(error){
-      console.error(error);
-      toast("QR Code 產生失敗","w");
-    }
-  });
+  var a = document.createElement('a');
+  a.download = 'order-qrcode.png';
+  a.href = img.src;
+  a.click();
+
+  toast('QR Code 已下載');
 }
-function dlQR(){var c=document.getElementById('qr-canvas'),a=document.createElement('a');a.download='order-qrcode.png';a.href=c.toDataURL();a.click();toast('QR Code 已下載');}
 
 function renderMenu(){
   var g=document.getElementById('menu-grid');
