@@ -531,6 +531,25 @@ input:checked+.tsl:before{transform:translateX(16px)}
 }
 .cm{font-size:11px;color:#8A817B}
 
+
+/* Public ranking */
+.stats-subtitle{color:var(--color-text-secondary,#756E68);font-size:12px;margin:-8px 0 16px 26px}
+.rank-card{background:#fff;border:1px solid #E8E0DB;border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(55,38,29,.07)}
+.rank-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:15px;border-bottom:1px solid #EEE7E2}
+.rank-title{font-size:16px;font-weight:800;color:#332B27}.rank-date{font-size:11px;color:#8A817B;margin-top:4px}
+.rank-total{background:#F5E7DF;color:#8D4A32;font-size:12px;font-weight:800;padding:7px 11px;border-radius:999px;white-space:nowrap}
+.public-ranking{padding-top:7px}
+.rank-row{display:grid;grid-template-columns:38px minmax(90px,145px) 1fr 48px;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #F1EBE7}
+.rank-row:last-child{border-bottom:0}
+.rank-medal{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:#F8F4F1;color:#675D57}
+.rank-row:nth-child(1) .rank-medal{background:#F7E8C8}.rank-row:nth-child(2) .rank-medal{background:#E9E9E9}.rank-row:nth-child(3) .rank-medal{background:#F0DDD0}
+.rank-name{font-size:13px;font-weight:700;color:#3A332F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-bar-wrap{height:10px;background:#F1ECE8;border-radius:999px;overflow:hidden}.rank-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,#B85C38,#D58A68);min-width:3px}
+.rank-count{text-align:right;font-size:12px;font-weight:800;color:#5B514B}
+.rank-empty{text-align:center;padding:38px 15px;color:#8A817B;font-size:12px;line-height:1.8}.rank-empty i{font-size:28px;display:block;margin-bottom:7px;color:#B85C38}
+.rank-note{display:flex;align-items:center;gap:6px;margin:11px 2px 0;color:#918780;font-size:10px}
+@media(max-width:600px){.rank-card{padding:15px}.rank-row{grid-template-columns:34px minmax(78px,105px) 1fr 42px;gap:7px}.rank-name{font-size:12px}.rank-count{font-size:11px}}
+
 </style>
 <style>
 /* 付款按鈕 */
@@ -711,22 +730,21 @@ input:checked+.tsl:before{transform:translateX(16px)}
 
 <div id="page-stats" class="page">
   <div class="inner">
-    <div class="sec-title"><i class="ti ti-chart-pie" aria-hidden="true"></i>訂單統計</div>
-    <div class="stats-g" id="stats-sum"></div>
-    <div class="recv-g" id="recv-sum"></div>
-    <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:9px"><i class="ti ti-flame" style="font-size:13px;color:#D85A30;margin-right:4px" aria-hidden="true"></i>熱門商品排行</div>
-    <div id="hot-items" style="margin-bottom:16px"></div>
-    <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:9px">應收金額明細（含跑腿費）</div>
-    <div style="overflow-x:auto">
-      <table class="ot">
-        <thead><tr><th style="width:70px">姓名</th><th style="width:140px">品項</th><th style="width:55px">飲料費</th><th style="width:50px">跑腿費</th><th style="width:60px">合計</th><th style="width:55px">狀態</th></tr></thead>
-        <tbody id="pay-body"></tbody>
-      </table>
+    <div class="sec-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>今日熱銷排行</div>
+    <div class="stats-subtitle">看看今天大家最常點哪一杯</div>
+    <div class="rank-card">
+      <div class="rank-head">
+        <div>
+          <div class="rank-title">🔥 今日熱銷排行</div>
+          <div class="rank-date" id="public-rank-date"></div>
+        </div>
+        <div class="rank-total" id="public-rank-total">0 杯</div>
+      </div>
+      <div id="public-ranking" class="public-ranking"></div>
     </div>
-    <div id="stats-empty" class="empty" style="display:none"><i class="ti ti-chart-bar" aria-hidden="true"></i>尚無訂單資料</div>
+    <div class="rank-note"><i class="ti ti-info-circle" aria-hidden="true"></i>排名會依目前訂單資料自動統計</div>
   </div>
 </div>
-
 <div id="page-history" class="page">
   <div class="inner">
     <div class="sec-title"><i class="ti ti-history" aria-hidden="true"></i>歷史訂單</div>
@@ -1102,39 +1120,84 @@ function exportExcel(){
 }
 
 function renderStats(){
-  var em=document.getElementById('stats-empty');
-  if(!orders.length){
-    ['stats-sum','recv-sum','hot-items','pay-body'].forEach(function(id){document.getElementById(id).innerHTML='';});
-    em.style.display='block';return;
+  if(isLoggedIn){
+    renderAdminStats();
+  }else{
+    renderPublicRanking();
   }
-  em.style.display='none';
-  var drinkSum=orders.reduce(function(s,o){return s+o.drinkTotal},0);
-  var errandSum=orders.reduce(function(s,o){return s+o.errand},0);
-  var total=orders.reduce(function(s,o){return s+o.total},0);
-  var paid=orders.filter(function(o){return o.paid}).reduce(function(s,o){return s+o.total},0);
-  var unpaid=total-paid,paidCnt=orders.filter(function(o){return o.paid}).length;
-  document.getElementById('stats-sum').innerHTML=
-    '<div class="sc"><div class="sn">'+orders.length+'</div><div class="sl">訂單數</div></div>'
-    +'<div class="sc"><div class="sn">NT$ '+total+'</div><div class="sl">總金額（含跑腿）</div></div>'
-    +'<div class="sc"><div class="sn">'+paidCnt+'/'+orders.length+'</div><div class="sl">已完成</div></div>';
-  document.getElementById('recv-sum').innerHTML=
-    '<div class="rc" style="background:#FAECE7"><div class="sn" style="color:#993C1D">NT$ '+total+'</div><div class="sl" style="color:#712B13">應收總額</div></div>'
-    +'<div class="rc" style="background:#EAF3DE"><div class="sn" style="color:#27500A">NT$ '+paid+'</div><div class="sl" style="color:#3B6D11">已收金額</div></div>'
-    +'<div class="rc" style="background:#FCEBEB"><div class="sn" style="color:#791F1F">NT$ '+unpaid+'</div><div class="sl" style="color:#A32D2D">未收金額</div></div>';
-  var ic={};
-  orders.forEach(function(o){menuItems.forEach(function(m){if(o.items&&o.items[m.id])ic[m.name]=(ic[m.name]||0)+o.items[m.id];});});
-  var sorted=Object.keys(ic).sort(function(a,b){return ic[b]-ic[a]}),mx=sorted.length?ic[sorted[0]]:1;
+}
+
+function renderPublicRanking(){
+  var box=document.getElementById('public-ranking');
+  var total=document.getElementById('public-rank-total');
+  var date=document.getElementById('public-rank-date');
+  if(!box)return;
+
+  var now=new Date();
+  if(date)date.textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+
+  var counts={};
+  orders.forEach(function(o){
+    if(!o.detail)return;
+    String(o.detail).split('、').forEach(function(part){
+      var m=part.match(/^(.+?)×(\d+)$/);
+      if(m){
+        var name=m[1].trim();
+        counts[name]=(counts[name]||0)+(Number(m[2])||0);
+      }
+    });
+  });
+
+  var ranking=Object.keys(counts).map(function(name){return {name:name,qty:counts[name]};})
+    .sort(function(a,b){return b.qty-a.qty || a.name.localeCompare(b.name,'zh-TW');});
+
+  var totalCups=ranking.reduce(function(sum,x){return sum+x.qty;},0);
+  if(total)total.textContent=totalCups+' 杯';
+
+  if(!ranking.length){
+    box.innerHTML='<div class="rank-empty"><i class="ti ti-chart-bar-off"></i>今天還沒有訂單<br><span>有訂單後，熱銷排行會自動出現在這裡</span></div>';
+    return;
+  }
+
+  var max=ranking[0].qty;
   var medals=['🥇','🥈','🥉'];
-  document.getElementById('hot-items').innerHTML=sorted.length?sorted.map(function(name,i){
-    var c=ic[name],w=Math.round(c/mx*100);
-    return '<div class="hr-row"><div class="hr-rank'+(i<3?' top':'')+'">'+( i<3?medals[i]:(i+1))+'</div>'
-      +'<div class="hi"><div class="hn">'+name+'</div><div class="hbar" style="width:'+w+'%"></div><div class="hct">'+c+' 杯</div></div>'
-      +'<span style="font-size:12px;font-weight:500;color:#993C1D">'+c+' 杯</span></div>';
-  }).join(''):'<div class="empty">無資料</div>';
-  document.getElementById('pay-body').innerHTML=orders.map(function(o){
-    var bdg=o.paid?'<span class="bdg bd">已付</span>':'<span class="bdg bp">未付</span>';
-    return '<tr><td>'+o.name+'</td><td title="'+o.detail+'">'+o.detail+'</td><td>NT$ '+o.drinkTotal+'</td><td><span class="bdg be">+'+o.errand+'</span></td><td style="color:#993C1D;font-weight:500">NT$ '+o.total+'</td><td>'+bdg+'</td></tr>';
+  box.innerHTML=ranking.map(function(x,i){
+    var width=Math.max(3,Math.round(x.qty/max*100));
+    return '<div class="rank-row">'
+      +'<div class="rank-medal">'+(medals[i]||(i+1))+'</div>'
+      +'<div class="rank-name" title="'+x.name+'">'+x.name+'</div>'
+      +'<div class="rank-bar-wrap"><div class="rank-bar" style="width:'+width+'%"></div></div>'
+      +'<div class="rank-count">'+x.qty+' 杯</div>'
+      +'</div>';
   }).join('');
+}
+
+function renderAdminStats(){
+  var kOrders=document.getElementById('kpi-orders');
+  var kTotal=document.getElementById('kpi-total');
+  var kPaid=document.getElementById('kpi-paid');
+  if(kOrders)kOrders.textContent=orders.length;
+  if(kTotal)kTotal.textContent='NT$ '+orders.reduce(function(s,o){return s+(Number(o.total)||0);},0);
+  if(kPaid){
+    var pc=orders.filter(function(o){return o.paid;}).length;
+    kPaid.textContent=pc+' / '+orders.length;
+  }
+
+  var hot=document.getElementById('hot-items');
+  if(hot){
+    var counts={};
+    orders.forEach(function(o){
+      if(!o.detail)return;
+      String(o.detail).split('、').forEach(function(part){
+        var m=part.match(/^(.+?)×(\d+)$/);
+        if(m)counts[m[1].trim()]=(counts[m[1].trim()]||0)+(Number(m[2])||0);
+      });
+    });
+    var ranking=Object.keys(counts).map(function(name){return {name:name,qty:counts[name]};}).sort(function(a,b){return b.qty-a.qty;});
+    hot.innerHTML=ranking.length
+      ? ranking.slice(0,8).map(function(x,i){return '<div class="or"><span>'+(i+1)+'. '+x.name+'</span><span>'+x.qty+' 杯</span></div>';}).join('')
+      : '<div class="empty">目前沒有銷售資料</div>';
+  }
 }
 
 function renderHistory(){
