@@ -1,0 +1,1662 @@
+<!-- v4.0: 大小杯、易用性、通知與商家角色介面升級；需同步更新 GAS 後端。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校園團購訂餐 v4.0</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<style>
+/* ===== Campus Order — Unified Visual System ===== */
+:root{
+  --brand:#B85C38;
+  --brand-dark:#7F3F28;
+  --brand-soft:#F5E7DF;
+  --brand-pale:#FBF6F2;
+  --ink:#2D2926;
+  --muted:#756E68;
+  --line:#E8E0DB;
+  --surface:#FFFFFF;
+  --surface-2:#F8F5F2;
+  --success:#3F7D58;
+  --success-bg:#EAF4ED;
+  --warning:#A56A1F;
+  --warning-bg:#FBF1DF;
+  --danger:#A44747;
+  --danger-bg:#F9EAEA;
+  --shadow-sm:0 2px 10px rgba(55,38,29,.06);
+  --shadow-md:0 10px 30px rgba(55,38,29,.09);
+  --radius:14px;
+  --radius-sm:10px;
+  --font-sans:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  color:var(--ink);
+  background:var(--surface-2);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit}
+button{transition:all .18s ease}
+.app{min-height:600px;background:var(--surface-2)}
+
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;gap:6px;padding:12px 22px;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  align-items:center;flex-wrap:wrap;
+  box-shadow:0 1px 12px rgba(55,38,29,.04);
+}
+.nav-brand{
+  font-size:15px;font-weight:700;color:var(--ink);
+  margin-right:auto;display:flex;align-items:center;gap:8px;
+  letter-spacing:.01em
+}
+.nav-brand .tag{
+  background:var(--brand-soft);color:var(--brand-dark);
+  padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600
+}
+.tab-btn{
+  padding:7px 13px;border:1px solid transparent;border-radius:10px;
+  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
+  display:flex;align-items:center;gap:6px
+}
+.tab-btn:hover{background:var(--surface-2);color:var(--ink)}
+.tab-btn.active{
+  background:var(--brand-soft);color:var(--brand-dark);
+  border-color:#E7C9BB;font-weight:600
+}
+.tab-btn i{font-size:14px}
+.page{display:none}
+.page.active{display:block}
+.inner{max-width:1080px;margin:0 auto;padding:30px 24px 42px}
+.sec-title{
+  font-size:16px;font-weight:700;color:var(--ink);margin-bottom:15px;
+  display:flex;align-items:center;gap:8px;letter-spacing:.01em
+}
+.sec-title i{font-size:17px;color:var(--brand)}
+
+.hero-full{
+  position:relative;width:100%;height:calc(100vh - 65px);
+  min-height:500px;max-height:860px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center
+}
+.hero-bg{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;transform:scale(1.025)
+}
+.hero-mask{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(0,0,0,.08),rgba(0,0,0,.2) 42%,rgba(20,13,9,.66) 100%),
+    linear-gradient(180deg,rgba(20,13,9,.18),rgba(20,13,9,.56))
+}
+.hero-content{
+  position:relative;z-index:2;text-align:center;padding:0 24px;
+  max-width:680px;display:flex;flex-direction:column;align-items:center
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;font-size:12px;
+  letter-spacing:.06em;color:#FFF4EC;background:rgba(91,49,34,.38);
+  border:1px solid rgba(255,255,255,.25);padding:7px 15px;
+  border-radius:999px;margin-bottom:20px;backdrop-filter:blur(8px)
+}
+.hero-title{
+  font-size:clamp(34px,5vw,54px);font-weight:700;line-height:1.25;
+  letter-spacing:-.025em;color:#fff;margin-bottom:15px;
+  text-shadow:0 3px 24px rgba(0,0,0,.32)
+}
+.hero-desc{
+  font-size:14px;color:rgba(255,255,255,.9);line-height:1.8;
+  margin-bottom:32px;letter-spacing:.04em
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:8px;padding:14px 30px;
+  background:#fff;color:var(--brand-dark);border:0;border-radius:999px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:0 12px 34px rgba(0,0,0,.18)
+}
+.hero-cta:hover{background:#FFF8F3;transform:translateY(-2px);box-shadow:0 16px 38px rgba(0,0,0,.22)}
+.hero-cta i{font-size:17px}
+.hero-scroll{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  z-index:2;color:rgba(255,255,255,.75);font-size:20px;
+  animation:heroBounce 1.8s ease-in-out infinite
+}
+@keyframes heroBounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+/* Order */
+#page-order{background:var(--surface-2);min-height:calc(100vh - 65px)}
+.menu-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;margin-bottom:24px
+}
+.menu-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:17px 16px;cursor:pointer;box-shadow:var(--shadow-sm);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease
+}
+.menu-card:hover{
+  border-color:#DDB5A4;transform:translateY(-2px);box-shadow:var(--shadow-md)
+}
+.menu-card.sel{border:2px solid var(--brand);background:var(--brand-pale);box-shadow:0 8px 24px rgba(184,92,56,.12)}
+.ic{font-size:11px;color:var(--brand);font-weight:600;margin-bottom:4px}
+.in{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.ip{font-size:13px;color:var(--brand-dark);font-weight:600}
+.qr{display:flex;align-items:center;gap:7px;margin-top:12px}
+.qb{
+  width:28px;height:28px;border:1px solid var(--line);border-radius:8px;
+  background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;
+  justify-content:center;color:var(--ink)
+}
+.qb:hover{border-color:#DDB5A4;background:var(--brand-soft);color:var(--brand-dark)}
+.qn{font-size:13px;font-weight:700;min-width:22px;text-align:center;color:var(--ink)}
+
+.op{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:15px 16px;margin-bottom:15px;box-shadow:var(--shadow-sm)
+}
+.or{
+  display:flex;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--line);font-size:13px;color:var(--ink)
+}
+.or:last-child{border:none}
+.tr{
+  display:flex;justify-content:space-between;font-size:15px;font-weight:700;
+  padding-top:11px;color:var(--ink)
+}
+.errand-note{
+  background:var(--warning-bg);border:1px solid #F0DFC2;border-radius:var(--radius-sm);
+  padding:11px 13px;margin-bottom:15px;font-size:12px;color:#6E491A;
+  display:flex;align-items:flex-start;gap:8px
+}
+.errand-note i{font-size:15px;flex-shrink:0;margin-top:2px;color:var(--warning)}
+.ni{display:flex;gap:9px;align-items:center;margin-bottom:15px}
+.ni label{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ni input{
+  flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+  font-size:13px;background:var(--surface);color:var(--ink);outline:none
+}
+.ni input:focus{border-color:#D9A993;box-shadow:0 0 0 3px rgba(184,92,56,.08)}
+.sb{
+  width:100%;padding:11px;background:var(--brand);color:#fff;border:none;
+  border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+  box-shadow:0 7px 18px rgba(184,92,56,.18)
+}
+.sb:hover{background:var(--brand-dark);transform:translateY(-1px)}
+
+/* Shared cards / tables */
+.stats-g{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:15px}
+.sc{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:17px;text-align:center;box-shadow:var(--shadow-sm)
+}
+.sn{font-size:20px;font-weight:700;color:var(--ink)}
+.sl{font-size:13px;color:var(--muted);margin-top:4px}
+.recv-g{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px}
+.rc{border:1px solid rgba(0,0,0,.04);border-radius:var(--radius);padding:17px;text-align:center;box-shadow:var(--shadow-sm)}
+.ot{
+  width:100%;border-collapse:separate;border-spacing:0;font-size:12px;
+  table-layout:fixed;overflow:hidden;border:1px solid var(--line);border-radius:12px;
+  background:var(--surface)
+}
+.ot th{
+  text-align:left;padding:10px 9px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);font-weight:700;color:var(--muted);font-size:11px
+}
+.ot td{
+  padding:10px 9px;border-bottom:1px solid var(--line);
+  color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.ot tr:last-child td{border-bottom:none}
+.ot tr:hover td{background:#FCFAF8}
+.bdg{display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600}
+.bp{background:var(--warning-bg);color:#80531C}
+.bd{background:var(--success-bg);color:#326447}
+.be{background:var(--brand-soft);color:var(--brand-dark)}
+.empty{text-align:center;padding:32px;color:#9A928B;font-size:12px}
+.empty i{font-size:28px;display:block;margin-bottom:7px;color:#B8ADA5}
+
+/* Admin */
+.adm-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--line)
+}
+.adm-u{display:flex;align-items:center;gap:9px}
+.adm-av{
+  width:34px;height:34px;border-radius:50%;background:var(--brand-soft);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+  font-weight:700;color:var(--brand-dark)
+}
+.adm-nm{font-size:16px;color:var(--ink);font-weight:600}
+.lo{
+  padding:6px 10px;font-size:11px;border:1px solid var(--line);border-radius:9px;
+  background:var(--surface);cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:4px
+}
+.lo:hover{background:var(--surface-2);color:var(--ink)}
+.adm-sec{margin-bottom:25px}
+.div{height:1px;background:var(--line);margin:20px 0}
+.er{
+  display:flex;align-items:center;gap:8px;padding:10px 0;
+  border-bottom:1px solid var(--line)
+}
+.er:last-child{border-bottom:none}
+.er .ei{flex:1;min-width:0}
+.er .en{font-size:13px;font-weight:600;color:var(--ink)}
+.er .em{font-size:11px;color:var(--muted);margin-top:1px}
+.eb,.db{
+  padding:6px 10px;font-size:11px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface);cursor:pointer;color:var(--muted)
+}
+.eb:hover{background:var(--surface-2);color:var(--ink)}
+.db{color:var(--danger);border-color:#E8CACA}
+.db:hover{background:var(--danger-bg)}
+.af,.cpf,.tbox,.qbox{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:15px;margin-top:10px;box-shadow:var(--shadow-sm)
+}
+.fg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:11px;color:var(--muted);font-weight:600}
+.ff input,.ff select{
+  padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:12px;
+  background:var(--surface);color:var(--ink);outline:none
+}
+.ff input:focus,.ff select:focus{border-color:#D9A993;box-shadow:0 0 0 3px rgba(184,92,56,.08)}
+.svb{
+  padding:8px 13px;background:var(--brand);color:#fff;border:none;
+  border-radius:9px;font-size:12px;font-weight:700;cursor:pointer
+}
+.svb:hover{background:var(--brand-dark)}
+.cnb{
+  padding:8px 12px;background:var(--surface);color:var(--muted);
+  border:1px solid var(--line);border-radius:9px;font-size:12px;
+  cursor:pointer;margin-left:5px
+}
+.cnb:hover{background:var(--surface-2)}
+.img-upload-section{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:15px;margin-bottom:16px}
+.img-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:10px}
+.img-slot{
+  border:1px dashed #D9CEC7;border-radius:10px;aspect-ratio:4/3;overflow:hidden;
+  position:relative;background:var(--surface-2);display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:4px;cursor:pointer
+}
+.img-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.img-slot .slot-label{font-size:10px;color:#9A928B;z-index:1}
+.img-slot i{font-size:20px;color:#B8ADA5;z-index:1}
+.img-slot .del-img{
+  position:absolute;top:4px;right:4px;width:19px;height:19px;border-radius:50%;
+  background:rgba(45,41,38,.65);color:#fff;border:none;cursor:pointer;
+  font-size:10px;display:flex;align-items:center;justify-content:center;z-index:2
+}
+.img-slot:hover{border-color:#C98C73}
+.img-input{display:none}
+.slide-info{display:flex;flex-direction:column;gap:5px}
+.slide-info input{
+  padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:11px;
+  background:var(--surface);color:var(--ink)
+}
+.tog-w{display:flex;align-items:center;gap:8px}
+.tog{position:relative;width:36px;height:20px}
+.tog input{opacity:0;width:0;height:0}
+.tsl{position:absolute;inset:0;background:#CFC7C1;border-radius:10px;cursor:pointer;transition:.2s}
+.tsl:before{
+  content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;
+  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.15)
+}
+input:checked+.tsl{background:var(--brand)}
+input:checked+.tsl:before{transform:translateX(16px)}
+.tl{font-size:12px;color:var(--muted)}
+.ob{
+  display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 9px;
+  border-radius:999px;background:var(--success-bg);color:#326447;font-weight:600
+}
+.cb{background:var(--danger-bg);color:#8B3636}
+.qbox{text-align:center}
+.dlb{
+  padding:7px 13px;font-size:12px;border:1px solid var(--line);border-radius:9px;
+  background:var(--surface);cursor:pointer;color:var(--muted);display:inline-flex;
+  align-items:center;gap:4px;margin-top:7px
+}
+.dlb:hover{background:var(--surface-2);color:var(--ink)}
+.tbox{margin-bottom:14px}
+.tr2{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tr2 label{font-size:12px;color:var(--muted);font-weight:600}
+.tr2 input[type=time]{
+  padding:6px 9px;border:1px solid var(--line);border-radius:9px;font-size:12px;
+  background:var(--surface);color:var(--ink)
+}
+.cdown{font-size:12px;font-weight:700;color:var(--brand)}
+.ht-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ht{
+  padding:6px 11px;font-size:11px;border:1px solid var(--line);border-radius:999px;
+  background:var(--surface);cursor:pointer;color:var(--muted)
+}
+.ht:hover{background:var(--surface-2)}
+.ht.on{background:var(--brand-soft);color:var(--brand-dark);border-color:#E2C0B0;font-weight:700}
+.he{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow-sm)
+}
+.hr-row{
+  display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid var(--line)
+}
+.hr-row:last-child{border-bottom:none}
+.hr-rank{font-size:13px;font-weight:700;width:24px;color:#9A928B}
+.hr-rank.top{color:var(--brand)}
+.hi{flex:1}
+.hn{font-size:13px;color:var(--ink);font-weight:600}
+.hbar{height:5px;border-radius:99px;background:#D99B80;margin-top:5px;transition:width .3s ease}
+.hct{font-size:10px;color:var(--muted);margin-top:2px}
+.toast{
+  position:fixed;top:76px;right:22px;background:var(--success);color:#fff;
+  padding:9px 14px;border-radius:10px;font-size:12px;opacity:0;
+  transform:translateY(-5px);transition:opacity .25s,transform .25s;
+  pointer-events:none;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.14)
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media (max-width: 700px){
+  .nav{padding:10px 14px;gap:5px}
+  .nav-brand{font-size:14px;width:100%;margin-bottom:2px}
+  .tab-btn{font-size:12px;padding:7px 10px}
+  .inner{padding:22px 15px 32px}
+  .hero-full{height:calc(100vh - 112px);min-height:440px}
+  .hero-title{font-size:30px}
+  .hero-desc{font-size:13px}
+  .hero-cta{padding:13px 25px;font-size:14px}
+  .menu-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .menu-card{padding:14px 12px}
+  .in{font-size:14px}.ip{font-size:13px}.ic{font-size:10px}
+  .qb{width:30px;height:30px}
+  .ni label{font-size:12px}.ni input{font-size:14px;padding:10px}
+  .sb{font-size:14px;padding:12px}
+  .or{font-size:13px}.tr{font-size:15px}
+  .stats-g,.recv-g{grid-template-columns:1fr;gap:9px}
+  .fg{grid-template-columns:1fr}
+  .img-grid{grid-template-columns:repeat(2,1fr)}
+  .ot{font-size:11px}.ot th{font-size:10px}.ot td{padding:9px 7px}
+  .toast{top:68px;right:12px;left:12px;text-align:center}
+}
+
+/* ===== Phase 2: richer ordering UI ===== */
+.order-head{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
+  margin-bottom:14px
+}
+.order-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.menu-card{position:relative;overflow:hidden}
+.menu-card:before{
+  content:'';position:absolute;right:-22px;top:-28px;width:82px;height:82px;
+  border-radius:50%;background:var(--brand-pale);pointer-events:none
+}
+.menu-card.sel:before{background:#F1DDD3}
+.menu-card .drink-mark{
+  width:42px;height:42px;border-radius:12px;background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  margin-bottom:11px;position:relative;z-index:1
+}
+.menu-card.sel .drink-mark{background:#fff}
+.menu-card .card-cat{
+  display:inline-flex;padding:3px 7px;border-radius:999px;
+  background:var(--surface-2);color:var(--muted);font-size:10px;
+  margin-bottom:5px
+}
+.menu-card.sel .card-cat{background:#fff0e9;color:var(--brand-dark)}
+.menu-card .card-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin-top:10px
+}
+.menu-card .price{font-size:14px;font-weight:700;color:var(--brand-dark)}
+.menu-card .qr{margin-top:0}
+.cart-summary{
+  position:sticky;bottom:16px;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 15px;margin-top:12px;background:rgba(255,255,255,.96);
+  border:1px solid #E4D6CE;border-radius:14px;
+  box-shadow:0 12px 32px rgba(55,38,29,.14);backdrop-filter:blur(12px)
+}
+.cart-summary .cart-info{display:flex;align-items:center;gap:9px;min-width:0}
+.cart-summary .cart-icon{
+  width:36px;height:36px;border-radius:10px;background:var(--brand-soft);
+  color:var(--brand-dark);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0
+}
+.cart-summary .cart-text{min-width:0}
+.cart-summary .cart-title{font-size:12px;font-weight:700;color:var(--ink)}
+.cart-summary .cart-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.cart-summary .cart-total{font-size:14px;font-weight:800;color:var(--brand-dark);white-space:nowrap}
+.cart-summary .cart-go{
+  border:0;background:var(--brand);color:#fff;padding:9px 13px;border-radius:9px;
+  font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap
+}
+.cart-summary .cart-go:hover{background:var(--brand-dark);transform:translateY(-1px)}
+.order-empty{
+  text-align:center;padding:25px 10px;color:#9A928B
+}
+.order-empty i{font-size:27px;display:block;margin-bottom:6px}
+.admin-kpis{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px
+}
+.admin-kpi{
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:14px 15px;box-shadow:var(--shadow-sm)
+}
+.admin-kpi .klabel{font-size:10px;color:var(--muted);margin-bottom:3px}
+.admin-kpi .kvalue{font-size:19px;font-weight:800;color:var(--ink)}
+.admin-kpi .ksub{font-size:10px;color:var(--muted);margin-top:2px}
+.admin-section-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:15px;box-shadow:var(--shadow-sm);margin-bottom:18px
+}
+.section-label{
+  font-size:13px;font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:6px
+}
+.section-label i{color:var(--brand);font-size:14px}
+.status-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--success);margin-right:5px
+}
+@media(max-width:700px){
+  .order-head{align-items:flex-start}
+  .cart-summary{bottom:10px;padding:11px 12px}
+  .cart-summary .cart-go{padding:9px 11px}
+  .admin-kpis{grid-template-columns:1fr 1fr}
+  .admin-kpi:last-child{grid-column:1/-1}
+}
+
+
+/* ===== Login page ===== */
+.login-wrap{
+  min-height:calc(100vh - 62px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:36px 18px;
+  background:linear-gradient(180deg,#FBF8F5 0%,#F6F0EB 100%);
+}
+.lcard{
+  width:min(390px,100%);
+  background:#fff;
+  border:1px solid #E8DED7;
+  border-radius:20px;
+  padding:28px;
+  box-shadow:0 18px 45px rgba(55,38,29,.10);
+}
+.lh{text-align:center;margin-bottom:22px}
+.lh i{
+  display:inline-flex;
+  width:48px;height:48px;border-radius:15px;
+  align-items:center;justify-content:center;
+  background:#F4E5DD;color:#9B4F35;font-size:23px;
+  margin-bottom:10px;
+}
+.lh h2{margin:0;color:#332B27;font-size:21px}
+.lh p{margin:6px 0 0;color:#8A817B;font-size:11px}
+.lf{margin-bottom:14px}
+.pr{
+  display:block;font-size:11px;font-weight:700;
+  color:#554B45;margin-bottom:6px;
+}
+.pe{
+  width:100%;box-sizing:border-box;
+  border:1px solid #DED4CD;background:#FCFAF8;
+  border-radius:10px;padding:11px 12px;
+  color:#332B27;outline:none;font-size:13px;
+}
+.pe:focus{
+  border-color:#B96A4A;
+  box-shadow:0 0 0 3px rgba(185,106,74,.10);
+  background:#fff;
+}
+.lb{
+  width:100%;border:0;border-radius:10px;
+  padding:11px 14px;background:#9B4F35;color:#fff;
+  font-size:13px;font-weight:700;cursor:pointer;
+  transition:.15s ease;
+}
+.lb:hover{background:#7F3E2A;transform:translateY(-1px)}
+.lerr{
+  min-height:16px;margin-top:10px;text-align:center;
+  color:#A44747;font-size:11px;
+}
+.cm{font-size:11px;color:#8A817B}
+
+
+/* Public ranking */
+.stats-subtitle{color:var(--muted);font-size:12px;margin:-8px 0 16px 26px}
+.rank-card{background:#fff;border:1px solid #E8E0DB;border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(55,38,29,.07)}
+.rank-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:15px;border-bottom:1px solid #EEE7E2}
+.rank-title{font-size:16px;font-weight:800;color:#332B27}.rank-date{font-size:11px;color:#8A817B;margin-top:4px}
+.rank-total{background:#F5E7DF;color:#8D4A32;font-size:12px;font-weight:800;padding:7px 11px;border-radius:999px;white-space:nowrap}
+.public-ranking{padding-top:7px}
+.rank-row{display:grid;grid-template-columns:38px minmax(90px,145px) 1fr 48px;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #F1EBE7}
+.rank-row:last-child{border-bottom:0}
+.rank-medal{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:#F8F4F1;color:#675D57}
+.rank-row:nth-child(1) .rank-medal{background:#F7E8C8}.rank-row:nth-child(2) .rank-medal{background:#E9E9E9}.rank-row:nth-child(3) .rank-medal{background:#F0DDD0}
+.rank-name{font-size:13px;font-weight:700;color:#3A332F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-bar-wrap{height:10px;background:#F1ECE8;border-radius:999px;overflow:hidden}.rank-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,#B85C38,#D58A68);min-width:3px}
+.rank-count{text-align:right;font-size:12px;font-weight:800;color:#5B514B}
+.rank-empty{text-align:center;padding:38px 15px;color:#8A817B;font-size:12px;line-height:1.8}.rank-empty i{font-size:28px;display:block;margin-bottom:7px;color:#B85C38}
+.rank-note{display:flex;align-items:center;gap:6px;margin:11px 2px 0;color:#918780;font-size:10px}
+@media(max-width:600px){.rank-card{padding:15px}.rank-row{grid-template-columns:34px minmax(78px,105px) 1fr 42px;gap:7px}.rank-name{font-size:12px}.rank-count{font-size:11px}}
+
+
+/* ===== v4.0 usability, notification modal, size selection ===== */
+body{font-size:16px;line-height:1.7}
+.nav-brand{font-size:18px}.nav-brand .tag{font-size:12px}
+.tab-btn{font-size:15px;padding:10px 14px;min-height:44px}
+.sec-title{font-size:21px}.order-sub{font-size:15px}
+.in{font-size:18px}.ip,.price{font-size:18px}.card-cat{font-size:13px!important}
+.ni label,.ni input{font-size:17px}.ni input{padding:13px 14px}
+.qb{width:42px;height:42px;font-size:23px;border-radius:10px}
+.qn{font-size:18px;min-width:28px}.sb,.lb,.svb,.notice-close{font-size:17px;min-height:48px}
+.or,.tr{font-size:17px}.cart-summary .cart-title{font-size:15px}.cart-summary .cart-meta{font-size:13px}.cart-summary .cart-total{font-size:19px}.cart-summary .cart-go{font-size:14px;min-height:42px}
+.ot{font-size:14px}.ot th{font-size:13px}.ot td{font-size:14px;white-space:normal;overflow-wrap:anywhere}
+.howto{background:#FFF;border:2px solid #E7C9BB;border-radius:14px;padding:15px 18px;margin:14px 0 18px;font-size:16px}
+.howto strong{font-size:18px;color:var(--brand-dark)}.howto ol{padding-left:24px;margin-top:6px}
+.size-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;position:relative;z-index:1}
+.size-option{flex:1;min-width:95px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px 9px;text-align:center}
+.size-option strong{display:block;font-size:15px}.size-option .size-price{font-size:14px;color:var(--brand-dark);font-weight:700}
+.size-qty{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:5px}
+.size-qty button{width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:20px;cursor:pointer}
+.size-qty span{font-size:16px;font-weight:700;min-width:18px}
+.notice-overlay{position:fixed;inset:0;z-index:9999;background:rgba(35,25,20,.68);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.notice-card{width:min(620px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;padding:32px 28px;text-align:center;box-shadow:0 24px 90px rgba(0,0,0,.3);border:2px solid #E8D4C9;animation:noticeIn .22s ease-out}
+.notice-icon{font-size:54px;margin-bottom:8px}.notice-card h2{font-size:30px;margin-bottom:10px;color:#7F3F28}.notice-card p{font-size:20px;line-height:1.7}.notice-detail{font-size:17px;margin:14px auto;padding:14px;background:#FBF6F2;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.notice-close{width:100%;margin-top:12px;background:#9B4F35;color:white;border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer}
+@keyframes noticeIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:700px){.sec-title{font-size:20px}.menu-grid{grid-template-columns:1fr 1fr}.menu-card{padding:13px 10px}.size-option{min-width:0;padding:7px 4px}.size-option strong{font-size:14px}.size-option .size-price{font-size:13px}.notice-card{padding:25px 18px}.notice-card h2{font-size:25px}.notice-card p{font-size:18px}.nav-brand{font-size:17px}}
+
+
+/* v4.1 usability: larger text, touch targets and clear status */
+body{font-size:16px;line-height:1.75}
+.nav-brand{font-size:18px}.tab-btn{font-size:14px;min-height:42px}
+.sec-title{font-size:21px}.order-sub,.errand-note,.howto,.cm,.em,.card-cat{font-size:15px}
+.ni label{font-size:17px}.ni input,.lf input,.ff input,.ff select{font-size:17px;min-height:44px}
+.in{font-size:19px}.size-option strong{font-size:16px}.size-option .size-price{font-size:16px}
+.size-qty button{min-width:34px;min-height:34px;font-size:18px}.size-qty span{font-size:17px}
+.or,.tr{font-size:17px}.sb,.lb,.svb,.notice-close{font-size:17px;min-height:48px}
+.ot td{font-size:14px}.ot th{font-size:13px}.eb,.db,.cnb,.lo{font-size:14px;min-height:36px}
+.my-order-status{margin-top:14px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:16px;line-height:1.8;color:var(--ink)}
+.my-order-status .status-title{font-size:18px;font-weight:800;color:var(--brand-dark)}
+.my-order-status .status-return{color:var(--danger);font-weight:700}
+.notice-card{width:min(620px,96vw);padding:34px 28px}.notice-icon{font-size:60px}.notice-card h2{font-size:30px}.notice-card p{font-size:19px}
+.admin-section-card{font-size:16px}
+@media(max-width:700px){.nav{padding:9px 10px}.nav-brand{font-size:16px}.tab-btn{font-size:13px;padding:7px 8px}.inner{padding:22px 14px 34px}.sec-title{font-size:20px}.menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.menu-card{padding:13px 10px}.size-option{min-width:0;padding:8px 4px}.size-option strong,.size-option .size-price{font-size:14px}.size-qty button{min-width:30px;min-height:32px}.notice-card{padding:25px 18px}.notice-card h2{font-size:25px}.notice-card p{font-size:17px}}
+</style>
+<style>
+/* 付款按鈕 */
+#adm-orders .eb{
+  cursor:pointer;
+  border-radius:8px;
+  font-weight:700;
+  transition:transform .15s ease,opacity .15s ease;
+}
+#adm-orders .eb:hover{transform:translateY(-1px);opacity:.9}
+</style>
+
+
+<div class="app" style="position:relative">
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="notice-overlay" class="notice-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="notice-title">
+  <div class="notice-card">
+    <div class="notice-icon" id="notice-icon">🔔</div>
+    <h2 id="notice-title">訂單通知</h2>
+    <p id="notice-message">有新的訂單通知。</p>
+    <div id="notice-detail" class="notice-detail"></div>
+    <button class="notice-close" onclick="closeNotice()">我知道了</button>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-brand"><i class="ti ti-cup" aria-hidden="true" style="font-size:16px;color:#D85A30"></i>校園團購訂餐<span class="tag">v4.1</span></div>
+  <button class="tab-btn active" onclick="sp('home')" id="tab-home"><i class="ti ti-home"></i>首頁</button>
+  <button class="tab-btn" onclick="sp('order')" id="tab-order"><i class="ti ti-shopping-cart"></i>點餐</button>
+  <button class="tab-btn" onclick="goAdmin()" id="tab-admin"><i class="ti ti-settings"></i>管理員</button>
+  <button class="tab-btn" onclick="sp('stats')" id="tab-stats"><i class="ti ti-chart-bar"></i>統計</button>
+  <button class="tab-btn" onclick="sp('history')" id="tab-history"><i class="ti ti-history"></i>歷史</button>
+  <button class="tab-btn" onclick="goMerchant()" id="tab-merchant"><i class="ti ti-building-store"></i>商家</button>
+</div>
+
+<div id="page-home" class="page active">
+  <div class="hero-full">
+    <img class="hero-bg" src="unnamed.png" alt="校園團購訂餐">
+    <div class="hero-mask"></div>
+    <div class="hero-content">
+      <span class="hero-eyebrow"><i class="ti ti-cup" aria-hidden="true"></i> 校園團購訂餐整合平台</span>
+      <h1 class="hero-title">動動手指<br>好喝飲料不用等</h1>
+      <p class="hero-desc">線上點餐・自動統計・跑腿費試算・掃碼揪團</p>
+      <button class="hero-cta" onclick="sp('order')">
+        <i class="ti ti-shopping-cart" aria-hidden="true"></i> 開始點餐
+      </button>
+    </div>
+    <div class="hero-scroll" aria-hidden="true"><i class="ti ti-chevron-down"></i></div>
+  </div>
+</div>
+
+<div id="page-order" class="page">
+  <div class="inner">
+    <div class="order-head">
+      <div>
+        <div class="sec-title" style="margin:0"><i class="ti ti-menu-2" aria-hidden="true"></i>今日菜單</div>
+        <div class="order-sub">選擇喜歡的飲料，加入你的校園團購</div>
+      </div>
+      <div id="order-badge" class="ob"><i class="ti ti-circle-check" style="font-size:12px"></i> 開放點餐</div>
+    </div>
+    <div id="cdown-bar" style="display:none;background:#FAEEDA;border-radius:var(--radius-sm);padding:6px 11px;margin-bottom:11px;font-size:12px;color:#633806;align-items:center;gap:5px">
+      <i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i><span>截止倒數：</span><span id="ucdown" style="font-weight:500">--:--</span>
+    </div>
+    <div class="errand-note">
+      <i class="ti ti-motorbike" aria-hidden="true"></i>
+      <div>
+        <div style="font-weight:500;margin-bottom:2px">跑腿費說明</div>
+        <div>點 1 樣 +NT$5 ／ 2～4 樣 +NT$10 ／ 5 樣以上 +NT$20</div>
+      </div>
+    </div>
+    <div class="howto" id="order-howto"><strong>第一次使用？跟著 3 步驟完成點餐</strong><ol><li>輸入姓名</li><li>選擇飲料、杯型與數量</li><li>確認總金額後按「送出訂單」</li></ol></div>
+    <div class="ni"><label for="uname">姓名</label><input id="uname" type="text" placeholder="請輸入姓名" maxlength="10" autocomplete="name"></div>
+    <div id="menu-grid" class="menu-grid"></div>
+    <div class="sec-title"><i class="ti ti-receipt" aria-hidden="true"></i>我的訂單</div>
+    <div id="my-order" class="op"><div class="empty"><i class="ti ti-shopping-cart" aria-hidden="true"></i>還沒選任何飲料</div></div>
+    <div id="my-order-status" class="my-order-status" aria-live="polite">送出訂單後，這裡會顯示訂單狀態。</div>
+    <button class="sb" onclick="submitOrder()">送出訂單</button>
+    <div id="cart-summary" class="cart-summary" style="display:none"></div>
+  </div>
+</div>
+
+<div id="page-login" class="page">
+  <div class="login-wrap">
+    <div class="lcard">
+      <div class="lh"><i class="ti ti-lock" aria-hidden="true"></i><h2>管理員登入</h2><p>請輸入帳號與密碼</p></div>
+      <div class="lf"><label>帳號</label><input id="lu" type="text" placeholder="帳號"></div>
+      <div class="lf"><label>密碼</label><div class="pr"><input id="lp" type="password" placeholder="密碼" onkeydown="if(event.key==='Enter')doLogin()"><button class="pe" onclick="tpwd('lp',this)" aria-label="顯示密碼"><i class="ti ti-eye"></i></button></div></div>
+      <button class="lb" onclick="doLogin()">登入</button>
+      <div class="lerr" id="lerr"></div>
+    </div>
+  </div>
+</div>
+
+<div id="page-merchant-login" class="page">
+  <div class="login-wrap"><div class="lcard"><div class="lh"><i class="ti ti-building-store" aria-hidden="true"></i><h2>商家登入</h2><p>商家僅可管理菜單與營業時間</p></div>
+    <div class="lf"><label class="pr">商家帳號</label><input class="pe" id="mu" type="text" placeholder="商家帳號"></div>
+    <div class="lf"><label class="pr">密碼</label><input class="pe" id="mp" type="password" placeholder="商家密碼" onkeydown="if(event.key==='Enter')merchantLogin()"></div>
+    <button class="lb" onclick="merchantLogin()">登入商家後台</button><div class="lerr" id="merr"></div>
+    <p class="cm">固定商家帳號由系統管理者設定。登入後可管理菜單、大小杯價格與營業時間。</p>
+  </div></div>
+</div>
+<div id="page-merchant" class="page"><div class="inner"><div class="adm-hdr"><div class="adm-u"><div class="adm-av">商</div><span class="adm-nm" id="merchant-name">商家後台</span></div><button class="lo" onclick="merchantLogout()">登出</button></div>
+  <div class="admin-section-card"><div class="section-label">菜單管理</div><p>商家可新增、修改與下架自己的飲料，並設定大小杯價格。</p><div id="merchant-menu-list"></div></div>
+  <div class="admin-section-card"><div class="section-label">營業時間</div><div class="fg"><div class="ff"><label>開始營業</label><input type="time" id="merchant-open" value="08:00"></div><div class="ff"><label>結束營業</label><input type="time" id="merchant-close" value="17:00"></div><div class="ff"><label>營業日備註</label><input id="merchant-days" placeholder="例如：週一至週五"></div></div><button class="svb" onclick="saveMerchantHours()">儲存營業時間</button><div class="cm" id="merchant-hours-msg">營業時間儲存需後端新增商家設定 API。</div></div>
+</div></div>
+
+<div id="page-admin" class="page">
+  <div class="inner">
+    <div class="adm-hdr">
+      <div class="adm-u"><div class="adm-av" id="adm-av">AD</div><span class="adm-nm" id="adm-nm">管理員</span></div>
+      <button class="lo" onclick="doLogout()"><i class="ti ti-logout" style="font-size:12px"></i> 登出</button>
+    </div>
+
+    <div class="adm-sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:500;color:var(--ink)"><i class="ti ti-power" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>點餐開關</div>
+        <div class="tog-w"><label class="tog"><input type="checkbox" id="otog" checked onchange="toggleOrders()"><span class="tsl"></span></label><span class="tl" id="tl">目前開放</span></div>
+      </div>
+      <div class="tbox">
+        <div class="tr2">
+          <label><i class="ti ti-clock" style="font-size:12px" aria-hidden="true"></i> 截止時間</label>
+          <input type="time" id="dl-time">
+          <button class="svb" onclick="setDl()">設定</button>
+          <button class="cnb" onclick="clrDl()">清除</button>
+          <span class="cdown" id="cdown-disp">未設定</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+
+    <div class="div"></div>
+
+    <div class="adm-sec">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px"><i class="ti ti-key" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>修改帳號密碼</div>
+      <div class="cpf">
+        <div class="fg">
+          <div class="ff"><label>新帳號</label><input id="nu" type="text" placeholder="留空不更改"></div>
+          <div class="ff"><label>新密碼</label><div class="pr"><input id="np" type="password" placeholder="留空不更改"><button class="pe" onclick="tpwd('np',this)" aria-label="顯示"><i class="ti ti-eye"></i></button></div></div>
+          <div class="ff"><label>確認新密碼</label><div class="pr"><input id="cp" type="password" placeholder="再輸入一次"><button class="pe" onclick="tpwd('cp',this)" aria-label="顯示"><i class="ti ti-eye"></i></button></div></div>
+        </div>
+        <div class="ff" style="margin-bottom:8px;max-width:200px"><label>目前密碼</label><div class="pr"><input id="curp" type="password" placeholder="驗證用"><button class="pe" onclick="tpwd('curp',this)" aria-label="顯示"><i class="ti ti-eye"></i></button></div></div>
+        <button class="svb" onclick="changeCreds()">儲存</button>
+        <div id="cred-msg" class="cm"></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="adm-sec">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:8px"><i class="ti ti-users" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>管理員帳號</div>
+      <div class="cpf">
+        <div class="fg">
+          <div class="ff"><label>新增帳號</label><input id="add-admin-user" type="text" placeholder="例如 user2"></div>
+          <div class="ff"><label>新增密碼</label><div class="pr"><input id="add-admin-pass" type="password" placeholder="密碼"><button class="pe" onclick="tpwd('add-admin-pass',this)" aria-label="顯示"><i class="ti ti-eye"></i></button></div></div>
+          <div class="ff"><label>名稱</label><input id="add-admin-name" type="text" placeholder="管理員2"></div>
+        </div>
+        <button class="svb" onclick="addAdminAccount()">新增帳號</button>
+        <div id="admin-list" style="margin-top:10px"></div>
+        <div id="admin-msg" class="cm"></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="adm-sec">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px"><i class="ti ti-qrcode" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>QR Code 點餐連結</div>
+      <div class="qbox">
+        <div id="qr-canvas" style="width:130px;height:130px;margin:auto;border:0.5px solid var(--line);border-radius:var(--radius-sm);padding:4px;background:#fff"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;word-break:break-all" id="qr-url">產生中...</div>
+        <br><button class="dlb" onclick="dlQR()"><i class="ti ti-download" style="font-size:12px"></i> 下載 QR Code</button>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="adm-sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <div style="font-size:13px;font-weight:500;color:var(--ink)"><i class="ti ti-menu-2" style="font-size:13px;color:#D85A30;margin-right:5px" aria-hidden="true"></i>菜單管理</div>
+        <button class="eb" onclick="toggleAF()" id="af-btn"><i class="ti ti-plus" style="font-size:11px"></i> 新增</button>
+      </div>
+      <div id="add-form" class="af" style="display:none">
+        <div class="fg">
+          <div class="ff"><label>品名</label><input id="new-name" type="text" placeholder="珍珠奶茶"></div>
+          <div class="ff"><label>小杯價格</label><input id="new-price" type="number" placeholder="55" min="1"></div>
+          <div class="ff"><label>大杯價格</label><input id="new-large-price" type="number" placeholder="65" min="1"></div>
+          <div class="ff"><label>分類</label><select id="new-cat"><option>飲料</option><option>茶類</option><option>咖啡</option><option>果汁</option><option>其他</option></select></div>
+        </div>
+        <button class="svb" onclick="addItem()">儲存</button><button class="cnb" onclick="toggleAF()">取消</button>
+      </div>
+      <div id="menu-list"></div>
+    </div>
+
+    <div class="admin-kpis" id="admin-kpis">
+      <div class="admin-kpi"><div class="klabel">今日訂單</div><div class="kvalue" id="kpi-orders">0</div><div class="ksub">筆</div></div>
+      <div class="admin-kpi"><div class="klabel">應收金額</div><div class="kvalue" id="kpi-total">NT$ 0</div><div class="ksub">含跑腿費</div></div>
+      <div class="admin-kpi"><div class="klabel">付款狀態</div><div class="kvalue" id="kpi-paid">0 / 0</div><div class="ksub"><span class="status-dot"></span>已付款</div></div>
+    </div>
+
+    <div class="adm-sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <div style="font-size:13px;font-weight:500;color:var(--ink)"><i class="ti ti-list" style="font-size:13px;color:var(--brand);margin-right:5px" aria-hidden="true"></i>所有訂單</div>
+        <button class="svb" onclick="exportExcel()" style="display:flex;align-items:center;gap:4px;font-size:11px"><i class="ti ti-file-spreadsheet" style="font-size:11px"></i> 匯出 Excel</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ot">
+          <thead><tr><th style="width:60px">姓名</th><th style="width:130px">品項</th><th style="width:55px">飲料</th><th style="width:50px">跑腿費</th><th style="width:60px">合計</th><th style="width:55px">付款</th><th style="width:85px">訂單狀態</th><th style="width:145px">操作</th></tr></thead>
+          <tbody id="adm-orders"></tbody>
+        </table>
+      </div>
+      <div id="adm-empty" class="empty" style="display:none"><i class="ti ti-inbox" aria-hidden="true"></i>尚無訂單</div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:6px">
+      <button class="eb" style="color:var(--danger);border-color:var(--danger)" onclick="clearOrders()"><i class="ti ti-trash" style="font-size:11px"></i> 清除訂單</button>
+      <button class="eb" onclick="archiveOrders()"><i class="ti ti-archive" style="font-size:11px"></i> 封存今日</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-stats" class="page">
+  <div class="inner">
+    <div class="sec-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>今日熱銷排行</div>
+    <div class="stats-subtitle">看看今天大家最常點哪一杯</div>
+    <div class="rank-card">
+      <div class="rank-head">
+        <div>
+          <div class="rank-title">🔥 今日熱銷排行</div>
+          <div class="rank-date" id="public-rank-date"></div>
+        </div>
+        <div class="rank-total" id="public-rank-total">0 杯</div>
+      </div>
+      <div id="public-ranking" class="public-ranking"></div>
+    </div>
+    <div class="rank-note"><i class="ti ti-info-circle" aria-hidden="true"></i>排名會依目前訂單資料自動統計</div>
+  </div>
+</div>
+<div id="page-history" class="page">
+  <div class="inner">
+    <div class="sec-title"><i class="ti ti-history" aria-hidden="true"></i>歷史訂單</div>
+    <div id="hist-tabs" class="ht-tabs"></div>
+    <div id="hist-content"></div>
+    <div id="hist-empty" class="empty"><i class="ti ti-database-off" aria-hidden="true"></i>尚無歷史紀錄<br><span style="font-size:11px">封存訂單後會在此顯示</span></div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+var ORDER_URL="https://script.google.com/macros/s/AKfycbyzmASZyD7YwrusOcMJJyCRIrgqmFSwcjpHA0903hZBs5Ob5V6SSQTN7rcRRhyocNZ6/exec";
+var MENU_URL="https://script.google.com/macros/s/AKfycbxFDdtOoQz_veN8DiVH5IxjwQlKO0FejCfo6vjrfp0Sf7UMnAskSZQPQiSpnmmvW0Wm/exec";
+var SETTING_URL="https://script.google.com/macros/s/AKfycbyYJAjud4JJvq9yQLEqJ5npXBwouKRpKCipzjTBJn4ACA81yeOpPx_abqeaqjW9QScw/exec";
+
+var menuItems=[
+  {id:1,name:'珍珠奶茶',price:55,category:'飲料'},
+  {id:2,name:'草莓牛奶',price:60,category:'飲料'},
+  {id:3,name:'烏龍茶',price:45,category:'茶類'},
+  {id:4,name:'綠茶拿鐵',price:65,category:'茶類'},
+  {id:5,name:'美式咖啡',price:50,category:'咖啡'},
+  {id:6,name:'百香果汁',price:55,category:'果汁'}
+];
+
+var settingsLoaded=false;
+var isLoggedIn=false;
+var sessionUser='';
+var sessionPass='';
+var orders=[];
+var historyData=[];
+var cart={};
+var orderOpen=true;
+var nextId=10;
+var editingId=null;
+var deadlineMs=null;
+var ctTimer=null;
+var qrDone=false;
+var activeOrderName='';
+var activeOrderId=null;
+var merchantSessionPass='';
+var orderStatusSeen={};
+var seenOrderIds={};
+var seenPaidIds={};
+var merchantLoggedIn=false;
+var merchantSessionUser='';
+var audioContext=null;
+var previousOrderIds={};
+var previousPaidStates={};
+var orderSnapshotReady=false;
+var largeCupExtra=10; // 預設大杯比小杯加 NT$10，可依店家實際價格調整
+var noticeQueue=[];
+var noticeOpen=false;
+
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  if(!t){alert(msg);return;}
+  t.textContent=msg;
+  t.style.background=type==='w'?'#BA7517':'#1D9E75';
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+function apiPost(url,payload){
+  return fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  }).then(function(res){
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return res.text();
+  }).then(function(raw){
+    var data;
+    try{data=JSON.parse(raw);}catch(e){throw new Error('API 回傳不是有效 JSON：'+raw.slice(0,120));}
+    if(data && data.success==='true')data.success=true;
+    if(data && data.success==='false')data.success=false;
+    return data;
+  });
+}
+
+function loadOrders(){
+  return fetch(ORDER_URL+'?t='+Date.now(),{cache:'no-store'})
+    .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+    .then(function(data){
+      if(Array.isArray(data))orders=data;
+      else if(data&&Array.isArray(data.orders))orders=data.orders;
+      else orders=[];
+      renderAdmOrders();
+      renderStats();
+      renderMyOrderStatus();
+      checkOrderNotifications();
+      return orders;
+    })
+    .catch(function(error){console.error('loadOrders:',error);return [];});
+}
+
+function loadMenu(){
+  return fetch(MENU_URL+'?t='+Date.now(),{cache:'no-store'})
+    .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+    .then(function(data){
+      var arr=Array.isArray(data)?data:(data&&Array.isArray(data.menu)?data.menu:null);
+      if(arr){menuItems=arr.map(function(m){return {
+        id:Number(m.id),name:String(m.name||''),price:Number(m.price)||0,
+        largePrice:(m.largePrice==null&&m.priceLarge==null)?null:Number(m.largePrice==null?m.priceLarge:m.largePrice),
+        category:m.category||'其他'
+      };});}
+      renderMenu();renderMyOrder();
+      if(isLoggedIn)renderMenuList();
+      if(merchantLoggedIn)renderMerchantMenu();
+      return menuItems;
+    })
+    .catch(function(error){console.error('loadMenu:',error);toast('菜單載入失敗，請確認 Menu GAS','w');return menuItems;});
+}
+
+function saveSettings(values){
+  if(!isLoggedIn){toast('請先登入管理員','w');return Promise.resolve(false);}
+  var jobs=Object.keys(values).map(function(key){
+    return apiPost(SETTING_URL,{key:key,value:values[key],username:sessionUser,password:sessionPass})
+      .then(function(data){return !!data.success;})
+      .catch(function(error){console.error('saveSettings:',error);return false;});
+  });
+  return Promise.all(jobs).then(function(results){return results.every(function(x){return x;});});
+}
+
+function loadSettings(){
+  return fetch(SETTING_URL+'?t='+Date.now(),{cache:'no-store'})
+    .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+    .then(function(data){
+      settingsLoaded=true;
+      var s=(data&&data.settings)?data.settings:(data||{});
+      if(s.order_open!==undefined)orderOpen=String(s.order_open).toLowerCase()==='true';
+      else if(s.orderOpen!==undefined)orderOpen=String(s.orderOpen).toLowerCase()==='true';
+      var toggle=document.getElementById('otog');if(toggle)toggle.checked=orderOpen;
+      var tl=document.getElementById('tl');if(tl)tl.textContent=orderOpen?'目前開放':'目前關閉';
+      if(s.deadline!==undefined&&String(s.deadline).trim())applyDeadline(String(s.deadline));else clearDeadlineUI();
+      var mo=document.getElementById('merchant-open'),mc=document.getElementById('merchant-close'),md=document.getElementById('merchant-days');
+      if(mo&&s.merchant_open_time&&document.activeElement!==mo)mo.value=String(s.merchant_open_time);
+      if(mc&&s.merchant_close_time&&document.activeElement!==mc)mc.value=String(s.merchant_close_time);
+      if(md&&s.merchant_days&&document.activeElement!==md)md.value=String(s.merchant_days);
+      updBadge();renderMenu();return s;
+    })
+    .catch(function(error){console.error('loadSettings:',error);return null;});
+}
+
+function calcErrand(c){
+  var totalQty=0;
+  Object.keys(c).forEach(function(k){totalQty+=Number(c[k])||0;});
+  if(totalQty===0)return 0;
+  if(totalQty===1)return 5;
+  if(totalQty<=4)return 10;
+  return 20;
+}
+
+function sp(p){
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(el){el.classList.remove('active');});
+  var page=document.getElementById('page-'+p);
+  if(page)page.classList.add('active');
+  var tab=document.getElementById('tab-'+p);
+  if(tab)tab.classList.add('active');
+  if(p==='stats')renderStats();
+  if(p==='admin'){renderAdmOrders();renderMenuList();setTimeout(genQR,200);}
+  if(p==='history'){
+    loadHistory().then(function(){renderHistory();});
+  }
+}
+
+function goAdmin(){
+  document.querySelectorAll('.tab-btn').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('tab-admin').classList.add('active');
+  if(isLoggedIn){
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-admin').classList.add('active');
+    renderAdmOrders();renderMenuList();setTimeout(genQR,200);
+  }else{
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-login').classList.add('active');
+    document.getElementById('lerr').textContent='';
+    document.getElementById('lu').value='';
+    document.getElementById('lp').value='';
+  }
+}
+
+function doLogin(){
+  var u=document.getElementById('lu').value.trim();
+  var p=document.getElementById('lp').value;
+  var err=document.getElementById('lerr');
+  if(!u||!p){err.textContent='請輸入帳號與密碼';return;}
+  err.textContent='登入中…';
+  apiPost(ORDER_URL,{action:'login',username:u,password:p})
+    .then(function(data){
+      if(!data.success){err.textContent=data.error||'帳號或密碼錯誤';return;}
+      sessionUser=u;
+      sessionPass=p;
+      isLoggedIn=true;
+      err.textContent='';
+      document.getElementById('adm-av').textContent=u.substring(0,2).toUpperCase();
+      document.getElementById('adm-nm').textContent=u;
+      document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+      document.getElementById('page-admin').classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(function(el){el.classList.remove('active');});
+      document.getElementById('tab-admin').classList.add('active');
+      renderAdmOrders();renderMenuList();loadAdminAccounts();setTimeout(genQR,300);
+      loadHistory();
+      toast('登入成功！');
+    })
+    .catch(function(error){console.error(error);err.textContent='無法連線到管理員資料庫';});
+}
+
+function doLogout(){
+  isLoggedIn=false;
+  sessionUser='';
+  sessionPass='';
+  toast('已登出');
+  sp('home');
+}
+
+function tpwd(id,btn){
+  var i=document.getElementById(id);
+  if(i.type==='password'){i.type='text';btn.innerHTML='<i class="ti ti-eye-off"></i>';}
+  else{i.type='password';btn.innerHTML='<i class="ti ti-eye"></i>';}
+}
+
+function changeCreds(){
+  if(!isLoggedIn||!sessionUser){toast('請先登入管理員','w');return;}
+  var nu=document.getElementById('nu').value.trim();
+  var np=document.getElementById('np').value;
+  var cp=document.getElementById('cp').value;
+  var cur=document.getElementById('curp').value;
+  var msg=document.getElementById('cred-msg');
+  if(!cur){msg.style.color='var(--danger)';msg.textContent='請輸入目前密碼';return;}
+  if(cur!==sessionPass){msg.style.color='var(--danger)';msg.textContent='目前密碼不正確';return;}
+  if(!nu&&!np){msg.style.color='var(--danger)';msg.textContent='請填寫新帳號或新密碼';return;}
+  if(np&&np!==cp){msg.style.color='var(--danger)';msg.textContent='新密碼不一致';return;}
+  if(np&&np.length<4){msg.style.color='var(--danger)';msg.textContent='密碼至少 4 個字元';return;}
+  var newUser=nu||sessionUser;
+  var newPass=np||sessionPass;
+  msg.textContent='更新中…';
+  apiPost(ORDER_URL,{action:'changeCredentials',username:sessionUser,currentPassword:cur,newUsername:newUser,newPassword:newPass})
+    .then(function(data){
+      if(!data.success){msg.style.color='var(--danger)';msg.textContent=data.error||'帳密更新失敗';return;}
+      sessionUser=newUser;
+      sessionPass=newPass;
+      ['nu','np','cp','curp'].forEach(function(id){document.getElementById(id).value='';});
+      document.getElementById('adm-av').textContent=newUser.substring(0,2).toUpperCase();
+      document.getElementById('adm-nm').textContent=newUser;
+      msg.style.color='var(--success)';
+      msg.textContent='帳密更新成功！';
+      setTimeout(function(){msg.textContent='';},3000);
+      toast('帳密已更新');
+    })
+    .catch(function(error){console.error(error);msg.style.color='var(--danger)';msg.textContent='無法連線到帳密資料庫';});
+}
+
+function loadAdminAccounts(){
+  if(!isLoggedIn)return;
+  apiPost(ORDER_URL,{action:'getAdmins',username:sessionUser,password:sessionPass})
+    .then(function(data){
+      if(!data.success){return;}
+      var box=document.getElementById('admin-list');
+      if(!box)return;
+      var arr=data.admins||[];
+      if(!arr.length){box.innerHTML='<div style="font-size:11px;color:var(--muted)">尚無管理員帳號</div>';return;}
+      box.innerHTML=arr.map(function(a){
+        var me=String(a.username)===String(sessionUser);
+        return '<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-top:1px solid var(--line);font-size:11px">'+
+          '<div style="flex:1"><b>'+esc(a.username)+'</b>'+(a.name?' · '+esc(a.name):'')+(me?' <span style="color:#D85A30">（目前）</span>':'')+'</div>'+
+          '<span style="color:'+(a.enabled?'#1D9E75':'#999')+'">'+(a.enabled?'啟用':'停用')+'</span>'+
+          (me?'':'<button class="cnb" style="font-size:10px;padding:4px 8px" data-user="'+esc(a.username)+'" onclick="deleteAdminAccount(this.dataset.user)">刪除</button>')+
+          '</div>';
+      }).join('');
+    }).catch(function(e){console.error(e);});
+}
+
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function escAttr(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+function addAdminAccount(){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  var u=document.getElementById('add-admin-user').value.trim();
+  var pw=document.getElementById('add-admin-pass').value;
+  var name=document.getElementById('add-admin-name').value.trim();
+  var msg=document.getElementById('admin-msg');
+  if(!u||!pw){msg.style.color='var(--danger)';msg.textContent='請輸入帳號與密碼';return;}
+  if(pw.length<4){msg.style.color='var(--danger)';msg.textContent='密碼至少 4 個字元';return;}
+  msg.style.color='var(--muted)';msg.textContent='新增中…';
+  apiPost(ORDER_URL,{action:'addAdmin',username:sessionUser,password:sessionPass,newUsername:u,newPassword:pw,name:name})
+    .then(function(data){
+      if(!data.success){msg.style.color='var(--danger)';msg.textContent=data.error||'新增失敗';return;}
+      ['add-admin-user','add-admin-pass','add-admin-name'].forEach(function(id){document.getElementById(id).value='';});
+      msg.style.color='var(--success)';msg.textContent='新增成功';
+      loadAdminAccounts();setTimeout(function(){msg.textContent='';},2000);
+    }).catch(function(e){console.error(e);msg.style.color='var(--danger)';msg.textContent='無法連線';});
+}
+
+function deleteAdminAccount(target){
+  if(!isLoggedIn)return;
+  if(!confirm('確定刪除管理員帳號「'+target+'」？'))return;
+  apiPost(ORDER_URL,{action:'deleteAdmin',username:sessionUser,password:sessionPass,targetUsername:target})
+    .then(function(data){
+      if(!data.success){toast(data.error||'刪除失敗','w');return;}
+      toast('帳號已刪除');loadAdminAccounts();
+    }).catch(function(e){console.error(e);toast('無法連線','w');});
+}
+
+function toggleOrders(){
+  var newState=document.getElementById('otog').checked;
+  saveSettings({order_open:newState?'true':'false'}).then(function(ok){
+    if(!ok){document.getElementById('otog').checked=orderOpen;toast('開關同步失敗','w');return;}
+    orderOpen=newState;
+    document.getElementById('tl').textContent=orderOpen?'目前開放':'目前關閉';
+    updBadge();renderMenu();
+    toast(orderOpen?'已開放點餐':'已關閉點餐');
+  });
+}
+
+function updBadge(){
+  var b=document.getElementById('order-badge');
+  if(!b)return;
+  if(orderOpen){b.className='ob';b.innerHTML='<i class="ti ti-circle-check" style="font-size:12px"></i> 開放點餐';}
+  else{b.className='ob cb';b.innerHTML='<i class="ti ti-lock" style="font-size:12px"></i> 已關閉';}
+}
+
+function setDl(){
+  var t=document.getElementById('dl-time').value;
+  if(!t){toast('請選擇截止時間','w');return;}
+  saveSettings({deadline:t}).then(function(ok){
+    if(!ok){toast('截止時間儲存失敗','w');return;}
+    applyDeadline(t);
+    toast('截止時間已設定：'+t);
+  });
+}
+
+function clearDeadlineUI(){
+  deadlineMs=null;
+  if(ctTimer)clearInterval(ctTimer);
+  ctTimer=null;
+  var dl=document.getElementById('dl-time');if(dl)dl.value='';
+  var cd=document.getElementById('cdown-disp');if(cd)cd.textContent='未設定';
+  var cb=document.getElementById('cdown-bar');if(cb)cb.style.display='none';
+}
+
+function clrDl(){
+  saveSettings({deadline:''}).then(function(ok){
+    if(!ok){toast('清除失敗','w');return;}
+    clearDeadlineUI();
+    toast('截止時間已清除');
+  });
+}
+
+function applyDeadline(t){
+  if(!t){clearDeadlineUI();return;}
+  var pts=String(t).slice(0,5).split(':');
+  if(pts.length!==2){clearDeadlineUI();return;}
+  var h=parseInt(pts[0],10),m=parseInt(pts[1],10);
+  if(isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59){clearDeadlineUI();return;}
+  var now=new Date();
+  var dl=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0,0);
+  if(dl<=now)dl.setDate(dl.getDate()+1);
+  deadlineMs=dl.getTime();
+  document.getElementById('dl-time').value=String(t).slice(0,5);
+  startCdown();
+}
+
+function startCdown(){
+  if(ctTimer)clearInterval(ctTimer);
+  function tick(){
+    if(!deadlineMs)return;
+    var rem=deadlineMs-Date.now();
+    if(rem<=0){
+      orderOpen=false;
+      document.getElementById('otog').checked=false;
+      document.getElementById('tl').textContent='目前關閉';
+      updBadge();renderMenu();
+      document.getElementById('cdown-disp').textContent='已截止';
+      var cb=document.getElementById('cdown-bar');if(cb)cb.style.display='none';
+      clearInterval(ctTimer);ctTimer=null;
+      return;
+    }
+    var h=Math.floor(rem/3600000);
+    var m=Math.floor((rem%3600000)/60000);
+    var sec=Math.floor((rem%60000)/1000);
+    var str=(h>0?h+':':'')+(m<10&&h>0?'0':'')+m+':'+(sec<10?'0':'')+sec;
+    var cd=document.getElementById('cdown-disp');if(cd)cd.textContent=str;
+    var ub=document.getElementById('ucdown');if(ub)ub.textContent=str;
+    var cb=document.getElementById('cdown-bar');if(cb)cb.style.display='flex';
+  }
+  tick();
+  ctTimer=setInterval(tick,1000);
+}
+
+function deadlinePassed(){return deadlineMs!==null && Date.now()>=deadlineMs;}
+
+function genQR(){
+  var url='https://11318035-netizen.github.io/campus-order/?mode=order';
+  var box=document.getElementById('qr-canvas');
+  if(!box||typeof QRCode==='undefined')return;
+  document.getElementById('qr-url').textContent=url;
+  box.innerHTML='';
+  new QRCode(box,{text:url,width:120,height:120});
+  qrDone=true;
+}
+
+function dlQR(){
+  var img=document.querySelector('#qr-canvas img');
+  if(!img){toast('請先產生 QR Code','w');return;}
+  var a=document.createElement('a');
+  a.download='order-qrcode.png';
+  a.href=img.src;
+  a.click();
+  toast('QR Code 已下載');
+}
+
+function cartKey(id,size){return String(id)+'_'+size;}
+function largePriceOf(item){return Number(item.largePrice||item.priceLarge||((Number(item.price)||0)+largeCupExtra));}
+function renderMenu(){
+  var g=document.getElementById('menu-grid');
+  if(!g)return;
+  if(!orderOpen){g.innerHTML='<div class="empty"><i class="ti ti-lock" aria-hidden="true"></i>目前不開放點餐</div>';return;}
+  var icons={'飲料':'🧋','茶類':'🍵','咖啡':'☕','果汁':'🧃','其他':'🥤'};
+  g.innerHTML=menuItems.map(function(item){
+    var smallQty=cart[cartKey(item.id,'S')]||0,largeQty=cart[cartKey(item.id,'L')]||0;
+    var icon=icons[item.category]||'🥤';
+    return '<div class="menu-card'+((smallQty+largeQty)>0?' sel':'')+'" id="card-'+item.id+'">'
+      +'<div class="drink-mark">'+icon+'</div><div class="card-cat">'+esc(item.category)+'</div><div class="in">'+esc(item.name)+'</div>'
+      +'<div class="size-pick">'
+      +'<div class="size-option"><strong>小杯</strong><div class="size-price">NT$ '+Number(item.price)+'</div><div class="size-qty"><button aria-label="小杯減少" onclick="chQty('+item.id+',-1,\'S\')">−</button><span id="qty-'+item.id+'-S">'+smallQty+'</span><button aria-label="小杯增加" onclick="chQty('+item.id+',1,\'S\')">＋</button></div></div>'
+      +'<div class="size-option"><strong>大杯</strong><div class="size-price">NT$ '+largePriceOf(item)+'</div><div class="size-qty"><button aria-label="大杯減少" onclick="chQty('+item.id+',-1,\'L\')">−</button><span id="qty-'+item.id+'-L">'+largeQty+'</span><button aria-label="大杯增加" onclick="chQty('+item.id+',1,\'L\')">＋</button></div></div>'
+      +'</div></div>';
+  }).join('');
+}
+function chQty(id,d,size){
+  size=size||'S';var key=cartKey(id,size);
+  cart[key]=(cart[key]||0)+d;if(cart[key]<0)cart[key]=0;
+  renderMenu();renderMyOrder();
+}
+function renderMyOrder(){
+  var p=document.getElementById('my-order');if(!p)return;
+  var cartBox=document.getElementById('cart-summary');
+  var entries=[],drinkTotal=0,totalQty=0;
+  menuItems.forEach(function(m){['S','L'].forEach(function(size){
+    var qty=Number(cart[cartKey(m.id,size)])||0;if(!qty)return;
+    var unit=size==='L'?largePriceOf(m):Number(m.price),sum=unit*qty;
+    entries.push({name:m.name,size:size==='L'?'大杯':'小杯',qty:qty,sum:sum});drinkTotal+=sum;totalQty+=qty;
+  });});
+  if(!entries.length){p.innerHTML='<div class="order-empty"><i class="ti ti-shopping-cart" aria-hidden="true"></i>還沒選任何飲料<br><span>請從上方選擇杯型與數量</span></div>';if(cartBox)cartBox.style.display='none';return;}
+  var errand=calcErrand(cart);
+  p.innerHTML=entries.map(function(e){return '<div class="or"><span>'+esc(e.name)+'（'+e.size+'）× '+e.qty+'</span><span>NT$ '+e.sum+'</span></div>';}).join('')
+    +'<div class="or" style="color:var(--muted)"><span>跑腿費（'+totalQty+' 杯）</span><span>+ NT$ '+errand+'</span></div>'
+    +'<div class="tr"><span>合計</span><span>NT$ '+(drinkTotal+errand)+'</span></div>';
+  if(cartBox){cartBox.style.display='flex';cartBox.innerHTML='<div class="cart-info"><div class="cart-icon">🛒</div><div class="cart-text"><div class="cart-title">購物車 · '+totalQty+' 杯</div><div class="cart-meta">含跑腿費 NT$ '+errand+'</div></div></div><div style="display:flex;align-items:center;gap:10px"><div class="cart-total">NT$ '+(drinkTotal+errand)+'</div><button class="cart-go" onclick="document.getElementById(\'uname\').focus()">填寫姓名</button></div>';}
+}
+function submitOrder(){
+  if(!orderOpen){toast('目前已關閉點餐','w');return;}
+  if(deadlinePassed()){toast('已超過訂單截止時間','w');return;}
+  var name=document.getElementById('uname').value.trim();
+  if(!name){toast('請先輸入姓名','w');document.getElementById('uname').focus();return;}
+  var details=[],drinkTotal=0,totalQty=0;
+  menuItems.forEach(function(m){['S','L'].forEach(function(size){
+    var qty=Number(cart[cartKey(m.id,size)])||0;if(!qty)return;
+    var cup=size==='L'?'大杯':'小杯',unit=size==='L'?largePriceOf(m):Number(m.price);
+    details.push(m.name+'('+cup+')×'+qty);drinkTotal+=unit*qty;totalQty+=qty;
+  });});
+  if(!details.length){toast('請至少選擇一杯飲料','w');return;}
+  var errand=calcErrand(cart);
+  var payload={action:'addOrder',name:name,detail:details.join('、'),drinkTotal:drinkTotal,errand:errand,total:drinkTotal+errand,totalQty:totalQty,time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),status:'待付款'};
+  toast('訂單送出中…');
+  apiPost(ORDER_URL,payload).then(function(data){
+    if(!data.success){toast(data.error||'訂單送出失敗','w');return;}
+    activeOrderName=name;activeOrderId=data.id==null?null:data.id;
+    cart={};renderMenu();renderMyOrder();document.getElementById('uname').value='';
+    renderMyOrderStatus();
+    toast('訂單已送出，請等待管理員確認付款。');
+    return loadOrders();
+  }).catch(function(error){console.error(error);toast('訂單送出失敗，請稍後再試','w');});
+}
+
+function showNotice(title,message,detail,icon){
+  document.getElementById('notice-title').textContent=title||'訂單通知';
+  document.getElementById('notice-message').textContent=message||'';
+  document.getElementById('notice-detail').textContent=detail||'';
+  document.getElementById('notice-icon').textContent=icon||'🔔';
+  document.getElementById('notice-overlay').style.display='flex';noticeOpen=true;
+}
+function closeNotice(){document.getElementById('notice-overlay').style.display='none';noticeOpen=false;}
+function playOrderTone(){
+  try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    audioContext=audioContext||new AC();if(audioContext.state==='suspended')audioContext.resume();
+    [880,660,880].forEach(function(freq,i){var osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,audioContext.currentTime+i*.22);gain.gain.exponentialRampToValueAtTime(.18,audioContext.currentTime+i*.22+.03);gain.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+i*.22+.17);osc.connect(gain);gain.connect(audioContext.destination);osc.start(audioContext.currentTime+i*.22);osc.stop(audioContext.currentTime+i*.22+.18);});
+  }catch(e){console.warn('提示音無法播放，請先與頁面互動一次。',e);}
+}
+function isPaidOrder(o){return o.paid===true||String(o.paid).toLowerCase()==='true'||o.paid==='已付款';}
+function checkOrderNotifications(){
+  var ids={};
+  orders.forEach(function(o){
+    var id=String(o.id),paid=isPaidOrder(o),status=String(o.status||(paid?'已付款':'待付款'));
+    ids[id]=true;
+    // 初次載入只建立基準，不對舊訂單發通知。只有管理員確認付款後才通知商家。
+    if(orderSnapshotReady&&merchantLoggedIn&&paid&&previousPaidStates[id]===false&&!seenPaidIds['merchant_'+id]){
+      seenPaidIds['merchant_'+id]=true;
+      playOrderTone();
+      showNotice('已確認付款的訂單','管理員已確認付款，請開始處理訂單。',String(o.name||'顧客')+'\n'+String(o.detail||'')+'\n合計：NT$ '+Number(o.total||0),'🔔');
+    }
+    if(activeOrderId!==null&&id===String(activeOrderId)){
+      if(paid&&!seenPaidIds['customer_'+id]){
+        seenPaidIds['customer_'+id]=true;
+        showNotice('付款已確認','管理員已確認這筆訂單付款。',String(o.detail||'')+'\n合計：NT$ '+Number(o.total||0),'✅');
+      }else if(status.indexOf('退回')!==-1&&!orderStatusSeen['return_'+id]){
+        orderStatusSeen['return_'+id]=true;
+        showNotice('訂單需要修改',String(o.returnReason||'請確認訂單內容'),String(o.detail||''),'📝');
+      }
+    }
+    previousPaidStates[id]=paid;
+  });
+  previousOrderIds=ids;orderSnapshotReady=true;
+}
+
+function goMerchant(){
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('tab-merchant').classList.add('active');
+  document.getElementById(merchantLoggedIn?'page-merchant':'page-merchant-login').classList.add('active');
+  if(merchantLoggedIn)renderMerchantMenu();
+}
+function merchantLogin(){
+  var u=document.getElementById('mu').value.trim(),pw=document.getElementById('mp').value,err=document.getElementById('merr');
+  if(!u||!pw){err.textContent='請輸入商家帳號與密碼';return;}
+  err.textContent='驗證中…';
+  apiPost(ORDER_URL,{action:'merchantLogin',username:u,password:pw}).then(function(data){
+    if(!data.success){err.textContent=data.error||'商家登入失敗';return;}
+    merchantLoggedIn=true;merchantSessionUser=u;merchantSessionPass=pw;
+    document.getElementById('merchant-name').textContent=data.name||u;
+    document.getElementById('mp').value='';err.textContent='';goMerchant();
+    loadMenu();loadSettings();loadOrders();
+  }).catch(function(e){console.error(e);err.textContent='無法連線，請確認訂單後端已部署新版。'});
+}
+
+function merchantLogout(){merchantLoggedIn=false;merchantSessionUser='';merchantSessionPass='';goMerchant();}
+
+function renderMerchantMenu(){
+  var box=document.getElementById('merchant-menu-list');if(!box)return;
+  box.innerHTML='<button class="svb" style="margin:8px 0 12px" onclick="merchantAddMenu()">＋ 新增菜單品項</button>'+menuItems.map(function(m){
+    return '<div class="er"><div class="ei"><div class="en">'+esc(m.name)+'</div><div class="em">小杯 NT$ '+Number(m.price)+'／大杯 NT$ '+largePriceOf(m)+'</div></div><button class="eb" onclick="merchantEditMenu('+Number(m.id)+')">編輯</button><button class="db" onclick="merchantDeleteMenu('+Number(m.id)+')">下架</button></div>';
+  }).join('');
+}
+
+function merchantEditMenu(id){
+  if(!merchantLoggedIn){toast('請先登入商家','w');return;}
+  var item=menuItems.find(function(m){return Number(m.id)===Number(id);});if(!item)return;
+  var name=prompt('品名',item.name);if(name===null)return;
+  var small=prompt('小杯價格（元）',item.price);if(small===null)return;
+  var large=prompt('大杯價格（元）',largePriceOf(item));if(large===null)return;
+  if(!name.trim()||!Number.isFinite(Number(small))||Number(small)<1||!Number.isFinite(Number(large))||Number(large)<1){toast('請輸入有效品名與價格','w');return;}
+  apiPost(MENU_URL,{action:'update',id:id,name:name.trim(),price:Number(small),largePrice:Number(large),category:item.category,username:merchantSessionUser,password:merchantSessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'菜單更新失敗','w');return;}
+    loadMenu().then(renderMerchantMenu);toast('菜單已更新');
+  }).catch(function(e){console.error(e);toast('菜單更新失敗','w');});
+}
+
+function saveMerchantHours(){
+  if(!merchantLoggedIn){toast('請先登入商家','w');return;}
+  var payload={action:'saveMerchantHours',username:merchantSessionUser,password:merchantSessionPass,openTime:document.getElementById('merchant-open').value,closeTime:document.getElementById('merchant-close').value,days:document.getElementById('merchant-days').value};
+  apiPost(SETTING_URL,payload).then(function(data){
+    var msg=document.getElementById('merchant-hours-msg');msg.textContent=data.success?'營業時間已儲存。':(data.error||'儲存失敗');
+    if(data.success)loadSettings();
+  }).catch(function(e){console.error(e);document.getElementById('merchant-hours-msg').textContent='儲存失敗，請確認設定後端已部署新版。';});
+}
+
+function merchantAddMenu(){
+  if(!merchantLoggedIn){toast('請先登入商家','w');return;}
+  var name=prompt('品名');if(name===null)return;
+  var small=prompt('小杯價格（元）','55');if(small===null)return;
+  var large=prompt('大杯價格（元）',String(Number(small)+largeCupExtra));if(large===null)return;
+  var category=prompt('分類（飲料／茶類／咖啡／果汁／其他）','飲料');if(category===null)return;
+  if(!name.trim()||!Number.isFinite(Number(small))||Number(small)<1||!Number.isFinite(Number(large))||Number(large)<1){toast('品名或價格無效','w');return;}
+  apiPost(MENU_URL,{action:'add',id:Date.now(),name:name.trim(),price:Number(small),largePrice:Number(large),category:category.trim()||'其他',username:merchantSessionUser,password:merchantSessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'新增失敗','w');return;}toast('已新增品項');return loadMenu().then(renderMerchantMenu);
+  }).catch(function(e){console.error(e);toast('新增失敗','w');});
+}
+function merchantDeleteMenu(id){
+  if(!merchantLoggedIn||!confirm('確定下架這個品項？'))return;
+  apiPost(MENU_URL,{action:'delete',id:id,username:merchantSessionUser,password:merchantSessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'下架失敗','w');return;}toast('品項已下架');return loadMenu().then(renderMerchantMenu);
+  }).catch(function(e){console.error(e);toast('下架失敗','w');});
+}
+function renderMyOrderStatus(){
+  var box=document.getElementById('my-order-status');if(!box)return;
+  if(activeOrderId===null){box.textContent='送出訂單後，這裡會顯示訂單狀態。';return;}
+  var o=orders.find(function(x){return String(x.id)===String(activeOrderId);});
+  if(!o){box.textContent='訂單已送出，正在同步狀態…';return;}
+  var status=String(o.status||(isPaidOrder(o)?'已付款':'待付款'));
+  if(status.indexOf('退回')!==-1){box.innerHTML='<div class="status-title status-return">訂單需要修改</div><div>退回原因：'+esc(o.returnReason||'請確認訂單內容')+'</div>';return;}
+  box.innerHTML='<div class="status-title">'+(isPaidOrder(o)?'付款已確認':'訂單已送出')+'</div><div>'+(isPaidOrder(o)?'管理員已確認付款。':'目前等待管理員確認付款。')+'</div><div style="margin-top:5px">'+esc(o.detail||'')+'</div><div>合計：NT$ '+Number(o.total||0)+'</div>';
+}
+
+function renderMenuList(){
+  var box=document.getElementById('menu-list');if(!box)return;
+  box.innerHTML=menuItems.map(function(item){
+    return '<div class="er"><div class="ei"><div class="en">'+esc(item.name)+'</div><div class="em">小杯 NT$ '+Number(item.price)+'／大杯 NT$ '+largePriceOf(item)+' · '+esc(item.category)+'</div></div><button class="eb" onclick="startEdit('+Number(item.id)+')"><i class="ti ti-edit"></i> 編輯</button><button class="db" onclick="delItem('+Number(item.id)+')"><i class="ti ti-trash"></i> 刪除</button></div>';
+  }).join('');
+}
+
+function toggleAF(){
+  var f=document.getElementById('add-form');editingId=null;
+  document.getElementById('af-btn').style.display='';f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block'){
+    document.getElementById('new-name').value='';document.getElementById('new-price').value='';
+    var lp=document.getElementById('new-large-price');if(lp)lp.value='';
+    document.getElementById('new-cat').selectedIndex=0;
+  }
+}
+
+function startEdit(id){
+  var item=menuItems.find(function(m){return String(m.id)===String(id);});if(!item)return;
+  editingId=id;document.getElementById('new-name').value=item.name;document.getElementById('new-price').value=item.price;
+  var lp=document.getElementById('new-large-price');if(lp)lp.value=largePriceOf(item);
+  document.getElementById('new-cat').value=item.category;document.getElementById('add-form').style.display='block';document.getElementById('af-btn').style.display='none';
+}
+
+function addItem(){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  var name=document.getElementById('new-name').value.trim(),price=Number(document.getElementById('new-price').value),cat=document.getElementById('new-cat').value;
+  var largeEl=document.getElementById('new-large-price'),large=largeEl&&largeEl.value!==''?Number(largeEl.value):price+largeCupExtra;
+  if(!name||!Number.isFinite(price)||price<1||!Number.isFinite(large)||large<1){toast('請填寫品名與有效的小杯、大杯價格','w');return;}
+  var payload=editingId?{action:'update',id:editingId,name:name,price:price,largePrice:large,category:cat,username:sessionUser,password:sessionPass}:{action:'add',id:Date.now(),name:name,price:price,largePrice:large,category:cat,username:sessionUser,password:sessionPass};
+  apiPost(MENU_URL,payload).then(function(data){
+    if(!data.success){toast(data.error||'菜單同步失敗','w');return;}
+    document.getElementById('new-name').value='';document.getElementById('new-price').value='';if(largeEl)largeEl.value='';
+    document.getElementById('add-form').style.display='none';editingId=null;document.getElementById('af-btn').style.display='';
+    loadMenu();toast(payload.action==='update'?'已更新':'已新增');
+  }).catch(function(error){console.error(error);toast('無法連線到菜單資料庫','w');});
+}
+
+function delItem(id){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  if(!confirm('確定要刪除這個菜單品項嗎？'))return;
+  apiPost(MENU_URL,{action:'delete',id:id,username:sessionUser,password:sessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'刪除同步失敗','w');return;}
+    delete cart[cartKey(id,'S')];delete cart[cartKey(id,'L')];loadMenu();renderMyOrder();toast('已刪除');
+  }).catch(function(error){console.error(error);toast('無法連線到菜單資料庫','w');});
+}
+
+function renderAdmOrders(){
+  var tb=document.getElementById('adm-orders'),em=document.getElementById('adm-empty');
+  var kOrders=document.getElementById('kpi-orders'),kTotal=document.getElementById('kpi-total'),kPaid=document.getElementById('kpi-paid');
+  if(kOrders)kOrders.textContent=orders.length;
+  if(kTotal)kTotal.textContent='NT$ '+orders.reduce(function(sum,o){return sum+(Number(o.total)||0);},0);
+  if(kPaid){var pc=orders.filter(isPaidOrder).length;kPaid.textContent=pc+' / '+orders.length;}
+  if(!tb)return;
+  if(!orders.length){tb.innerHTML='';if(em)em.style.display='block';return;}
+  if(em)em.style.display='none';
+  tb.innerHTML=orders.map(function(o){
+    var paid=isPaidOrder(o),status=String(o.status||(paid?'已付款':'待付款'));
+    var pbdg=paid?'<span class="bdg bd">已付款</span>':'<span class="bdg bp">未付款</span>';
+    var statusBadge='<span class="bdg '+(status.indexOf('退回')!==-1?'bp':(paid?'bd':'be'))+'">'+esc(status)+'</span>'+(o.returnReason?'<div style="color:var(--danger);font-size:12px;margin-top:4px">原因：'+esc(o.returnReason)+'</div>':'');
+    var btn='<div style="display:flex;gap:5px;justify-content:center;white-space:nowrap;flex-wrap:wrap">'+
+      '<button class="eb" onclick="setPaid('+Number(o.id)+',true)">確認付款</button>'+
+      '<button class="eb" onclick="setPaid('+Number(o.id)+',false)">取消付款</button>'+
+      '<button class="db" onclick="returnOrder('+Number(o.id)+')">退回</button></div>';
+    return '<tr><td>'+esc(o.name)+'</td><td title="'+esc(o.detail)+'">'+esc(o.detail)+'</td><td>NT$ '+Number(o.drinkTotal||0)+'</td><td><span class="bdg be">+'+Number(o.errand||0)+'</span></td><td style="font-weight:600">NT$ '+Number(o.total||0)+'</td><td>'+pbdg+'</td><td>'+statusBadge+'</td><td>'+btn+'</td></tr>';
+  }).join('');
+}
+
+function setPaid(id,paid){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  apiPost(ORDER_URL,{action:'paid',id:id,paid:!!paid,username:sessionUser,password:sessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'付款狀態更新失敗','w');return;}
+    toast(paid?'已確認付款':'已取消付款');return loadOrders();
+  }).catch(function(error){console.error(error);toast('試算表同步失敗','w');});
+}
+
+function returnOrder(id){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  var reason=prompt('請填寫退回原因（顧客會看到）','請確認品項或杯型');if(reason===null)return;reason=reason.trim();
+  if(!reason){toast('退回原因不可空白','w');return;}
+  apiPost(ORDER_URL,{action:'returnOrder',id:id,reason:reason,username:sessionUser,password:sessionPass}).then(function(data){
+    if(!data.success){toast(data.error||'退回失敗，請確認訂單後端已更新','w');return;}
+    toast('訂單已退回');return loadOrders();
+  }).catch(function(e){console.error(e);toast('退回失敗，請確認訂單後端已更新','w');});
+}
+
+function markPaid(id){setPaid(id,true);}
+
+function clearOrders(){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  if(!orders.length){toast('目前沒有訂單','w');return;}
+  if(!confirm('確定要清除目前所有訂單嗎？此操作無法復原。'))return;
+  apiPost(ORDER_URL,{action:'clearOrders',username:sessionUser,password:sessionPass})
+    .then(function(data){
+      if(!data.success){toast(data.error||'清除訂單失敗','w');return;}
+      toast('目前訂單已清除');
+      return loadOrders();
+    })
+    .catch(function(error){console.error(error);toast('清除訂單失敗','w');});
+}
+
+function archiveOrders(){
+  if(!isLoggedIn){toast('請先登入管理員','w');return;}
+  if(!orders.length){toast('目前沒有訂單可封存','w');return;}
+  if(!confirm('確定要封存目前所有訂單嗎？'))return;
+  apiPost(ORDER_URL,{action:'archiveOrders',username:sessionUser,password:sessionPass})
+    .then(function(data){
+      if(!data.success){toast(data.error||'封存失敗','w');return;}
+      toast('今日訂單已封存至歷史');
+      return Promise.all([loadOrders(),loadHistory()]);
+    })
+    .catch(function(error){console.error(error);toast('封存失敗','w');});
+}
+
+function loadHistory(){
+  return apiPost(ORDER_URL,{action:'getHistory'})
+    .then(function(data){
+      if(data&&data.success&&Array.isArray(data.history))historyData=data.history;
+      else historyData=[];
+      renderHistory();
+      return historyData;
+    })
+    .catch(function(error){console.error('loadHistory:',error);historyData=[];renderHistory();return [];});
+}
+
+function exportExcel(){
+  if(!orders.length){toast('沒有訂單可匯出','w');return;}
+  try{
+    var rows=[['姓名','品項','飲料費','跑腿費','合計','付款狀態','訂單狀態','退回原因','時間']];
+    orders.forEach(function(o){rows.push([o.name,o.detail,'NT$ '+o.drinkTotal,'NT$ '+o.errand,'NT$ '+o.total,isPaidOrder(o)?'已付款':'未付款',o.status||'',o.returnReason||'',o.time||'']);});
+    var ws=XLSX.utils.aoa_to_sheet(rows),wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'訂單');
+    XLSX.writeFile(wb,'訂單_'+new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')+'.xlsx');
+    toast('Excel 匯出成功！');
+  }catch(e){console.error(e);toast('匯出失敗','w');}
+}
+
+function renderStats(){
+  if(isLoggedIn)renderAdminStats();
+  else renderPublicRanking();
+}
+
+function parseDetail(detail){
+  var result=[];
+  String(detail||'').split('、').forEach(function(part){
+    var m=part.match(/^(.+?)×\s*(\d+)$/);
+    if(m)result.push({name:m[1].trim(),qty:Number(m[2])||0});
+  });
+  return result;
+}
+
+function renderPublicRanking(){
+  var box=document.getElementById('public-ranking');
+  var total=document.getElementById('public-rank-total');
+  var date=document.getElementById('public-rank-date');
+  if(!box)return;
+  var now=new Date();
+  if(date)date.textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  var counts={};
+  orders.forEach(function(o){parseDetail(o.detail).forEach(function(x){counts[x.name]=(counts[x.name]||0)+x.qty;});});
+  var ranking=Object.keys(counts).map(function(name){return {name:name,qty:counts[name]};}).sort(function(a,b){return b.qty-a.qty||a.name.localeCompare(b.name,'zh-TW');});
+  var totalCups=ranking.reduce(function(sum,x){return sum+x.qty;},0);
+  if(total)total.textContent=totalCups+' 杯';
+  if(!ranking.length){box.innerHTML='<div class="rank-empty"><i class="ti ti-chart-bar-off"></i>今天還沒有訂單<br><span>有訂單後，熱銷排行會自動出現在這裡</span></div>';return;}
+  var max=ranking[0].qty,medals=['🥇','🥈','🥉'];
+  box.innerHTML=ranking.map(function(x,i){
+    var width=Math.max(3,Math.round(x.qty/max*100));
+    return '<div class="rank-row"><div class="rank-medal">'+(medals[i]||(i+1))+'</div><div class="rank-name" title="'+x.name+'">'+x.name+'</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:'+width+'%"></div></div><div class="rank-count">'+x.qty+' 杯</div></div>';
+  }).join('');
+}
+
+function renderAdminStats(){
+  var kOrders=document.getElementById('kpi-orders');
+  var kTotal=document.getElementById('kpi-total');
+  var kPaid=document.getElementById('kpi-paid');
+  if(kOrders)kOrders.textContent=orders.length;
+  if(kTotal)kTotal.textContent='NT$ '+orders.reduce(function(s,o){return s+(Number(o.total)||0);},0);
+  if(kPaid){
+    var pc=orders.filter(function(o){return o.paid===true||String(o.paid).toLowerCase()==='true'||o.paid==='已付款';}).length;
+    kPaid.textContent=pc+' / '+orders.length;
+  }
+  var hot=document.getElementById('hot-items');
+  if(hot){
+    var counts={};
+    orders.forEach(function(o){parseDetail(o.detail).forEach(function(x){counts[x.name]=(counts[x.name]||0)+x.qty;});});
+    var ranking=Object.keys(counts).map(function(name){return {name:name,qty:counts[name]};}).sort(function(a,b){return b.qty-a.qty;});
+    hot.innerHTML=ranking.length?ranking.slice(0,8).map(function(x,i){return '<div class="or"><span>'+(i+1)+'. '+x.name+'</span><span>'+x.qty+' 杯</span></div>';}).join(''):'<div class="empty">目前沒有銷售資料</div>';
+  }
+}
+
+function renderHistory(){
+  var em=document.getElementById('hist-empty'),tabs=document.getElementById('hist-tabs'),content=document.getElementById('hist-content');
+  if(!em||!tabs||!content)return;
+  if(!historyData.length){em.style.display='block';tabs.innerHTML='';content.innerHTML='';return;}
+  em.style.display='none';
+  tabs.innerHTML=historyData.map(function(h,i){return '<button class="ht'+(i===historyData.length-1?' on':'')+'" onclick="showHist('+i+',this)">'+h.date+'</button>';}).join('');
+  showHist(historyData.length-1,tabs.lastElementChild);
+}
+
+function showHist(idx,btn){
+  if(!historyData[idx])return;
+  document.querySelectorAll('.ht').forEach(function(el){el.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  var h=historyData[idx];
+  var counts={};
+  (h.orders||[]).forEach(function(o){parseDetail(o.detail).forEach(function(x){counts[x.name]=(counts[x.name]||0)+x.qty;});});
+  var itemSummary=Object.keys(counts).map(function(n){return n+' × '+counts[n];}).join('、');
+  document.getElementById('hist-content').innerHTML='<div class="he">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-size:13px;font-weight:500;color:var(--ink)">'+h.date+'</div>'
+    +'<span class="bdg bd">'+(h.orders||[]).length+' 筆 · NT$ '+(Number(h.total)||0)+'</span></div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:9px">'+(itemSummary||'無品項資料')+'</div>'
+    +'<table class="ot"><thead><tr><th style="width:65px">姓名</th><th style="width:130px">品項</th><th style="width:55px">飲料費</th><th style="width:45px">跑腿費</th><th style="width:55px">合計</th><th style="width:50px">狀態</th></tr></thead>'
+    +'<tbody>'+(h.orders||[]).map(function(o){
+      var paid=o.paid===true||String(o.paid).toLowerCase()==='true'||o.paid==='已付款';
+      return '<tr><td>'+o.name+'</td><td title="'+o.detail+'">'+o.detail+'</td><td>NT$ '+o.drinkTotal+'</td><td><span class="bdg be">+'+o.errand+'</span></td><td>NT$ '+o.total+'</td><td>'+(paid?'<span class="bdg bd">已付</span>':'<span class="bdg bp">未付</span>')+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+renderMenu();
+loadMenu();
+loadSettings();
+loadOrders();
+loadHistory();
+
+setInterval(function(){
+  loadOrders();
+  loadSettings();
+  if(document.getElementById('page-history').classList.contains('active'))loadHistory();
+},5000);
+</script>
+
+</body>
+</html>
